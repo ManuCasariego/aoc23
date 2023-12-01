@@ -1,4 +1,4 @@
-abstract class Day (){
-    abstract fun part1(): String
-    abstract fun part2(): String
+abstract class Day {
+    abstract fun part1(): Int
+    abstract fun part2(): Int
 }

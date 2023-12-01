@@ -1,21 +1,26 @@
 package day01
 
 import DayTest
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 
 class Day01Test : DayTest() {
-    private val exampleDay = Day01("()())")
+    private val exampleDay = Day01("01".readTestInput())
     private val day = Day01("01".readInput())
 
     @Test
-    fun part1Example() {
-        solvePart1(exampleDay)
+    fun testSolvePart1WithExampleInput() {
+        val part1 = solvePart1(exampleDay)
+        val expectedSolution = 142
+        assertEquals(expectedSolution, part1, "Part 1 with example input should equal $expectedSolution")
     }
 
     @Test
-    fun part2Example() {
-        solvePart2(exampleDay)
+    fun testSolvePart2WithExampleInput() {
+        val part2 = solvePart2(exampleDay)
+        val expectedSolution = 281
+        assertEquals(expectedSolution, part2, "Part 2 with example input should equal $expectedSolution")
     }
 
     @Test
