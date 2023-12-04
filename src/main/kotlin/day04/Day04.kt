@@ -5,17 +5,15 @@ import kotlin.math.pow
 
 class Day04(private val input: String) : Day() {
     override fun part1(): Int {
-        val a = input.lines().map { line ->
+        return input.lines().sumOf { line ->
             val numberOfMatches = getNumberOfMatches(line)
             if (numberOfMatches == 0) 0 else 2f.pow(numberOfMatches - 1).toInt()
         }
-        return a.sum()
     }
 
     private fun getNumberOfMatches(line: String): Int {
-        var split = line.split(" ")
-//            Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
-        split = split.dropWhile { it == "Card" || it.matches(Regex("(\\d)+:")) || it == "" }
+        // Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
+        val split = line.split(" ").dropWhile { it == "Card" || it.matches(Regex("(\\d)+:")) || it == "" }
 
         val firstNumbers = mutableListOf<Int>()
         val secondNumbers = mutableListOf<Int>()
