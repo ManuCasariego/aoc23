@@ -13,25 +13,10 @@ class Day04(private val input: String) : Day() {
 
     private fun getNumberOfMatches(line: String): Int {
         // Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
-        val split = line.split(" ").dropWhile { it == "Card" || it.matches(Regex("(\\d)+:")) || it == "" }
+        val split = line.split(":").last().split("|")
 
-        val firstNumbers = mutableListOf<Int>()
-        val secondNumbers = mutableListOf<Int>()
-        var foundPipe = false
-        for (elem in split) {
-            if (elem == "|") {
-                foundPipe = true
-                continue
-            }
-            if (elem == "") {
-                continue
-            }
-            if (!foundPipe) {
-                firstNumbers.add(elem.toInt())
-            } else {
-                secondNumbers.add(elem.toInt())
-            }
-        }
+        val firstNumbers = split.first().split(" ").filter { it.isNotEmpty() }.map { it.toInt() }
+        val secondNumbers = split.last().split(" ").filter { it.isNotEmpty() }.map { it.toInt() }
 
         return secondNumbers.filter { it in firstNumbers }.size
     }
