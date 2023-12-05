@@ -1,19 +1,28 @@
 package day05
 
 import Day
-import java.time.Instant
 
 class Day05(private val input: String) : Day() {
+    data class TransformationRange(val destinationStart: Long, val sourceStart: Long, val rangeLength: Long)
+    data class Range(val start: Long, val rangeLength: Long) {
+        companion object {
+            fun getRangeFromStartEnd(start: Long, end: Long): Range {
+                return Range(start, end - start - 1)
+            }
+        }
+    }
+
+
     fun part1Long(): Long {
         // destinationstart sourcestart rangelength
         // if it isn't mapped then it is the same source and destination, seed 10 goes to soil 10
 
-        val transformations2dArray = getTransformations2dArray()
+        val transformationsMatrix = getTransformationsMatrix()
 
         var seeds = input.substringBefore("\n\n").substringAfter(":").longs().toMutableList()
         // since they are a chain I will override them
 
-        transformations2dArray.forEach { transformationArray ->
+        transformationsMatrix.forEach { transformationArray ->
 
             seeds = seeds.map { seedInt ->
                 transformationArray.map { transformation ->
@@ -30,12 +39,11 @@ class Day05(private val input: String) : Day() {
 
     private fun getRangeThatFits(
         left: Long,
-        transformationArray: List<Triple<Long, Long, Long>>,
-    ): Triple<Long, Long, Long>? {
+        transformationArray: List<TransformationRange>,
+    ): TransformationRange? {
         // this function needs to find if left sits under any transformationarray range, if not return null
         return transformationArray.firstOrNull {
-            val (_, sourceStart, rangeLength) = it
-            left in (sourceStart..<(sourceStart + rangeLength))
+            left in (it.sourceStart..<(it.sourceStart + it.rangeLength))
         }
     }
 
@@ -45,22 +53,21 @@ class Day05(private val input: String) : Day() {
 
         val chunkedSeeds = input.substringBefore("\n\n").substringAfter(":").longs().chunked(2).toMutableList()
 
-        val transformations2dArray = getTransformations2dArray()
-
+        val transformationMatrix = getTransformationsMatrix()
 
         val response = chunkedSeeds.flatMap { chunkSeed ->
 
             // so we have a chunkseed range
-            val chunkSeedRange = Pair(chunkSeed.first(), chunkSeed.last())
+            val chunkSeedRange = Range(chunkSeed.first(), chunkSeed.last())
             var rangesList = listOf(chunkSeedRange)
 
-            transformations2dArray.forEach { transformationArray ->
+            transformationMatrix.forEach { transformationArray ->
                 // we need to convert this range in multiple ranges
-                val newRanges = mutableListOf<Pair<Long, Long>>()
+                val newRanges = mutableListOf<Range>()
 
                 rangesList.forEach { range ->
-                    val startingRange = range.first
-                    val rangeStep = range.second
+                    val startingRange = range.start
+                    val rangeStep = range.rangeLength
 
 
                     // start the iteration, i have one range and needs to be converted to 1 or more based on the transformationArray we have
@@ -72,16 +79,15 @@ class Day05(private val input: String) : Day() {
                         if (rangeThatFits == null) {
                             // we didn't find any range that fits
                             right =
-                                (startingRange + rangeStep).coerceAtMost(transformationArray.filter { it.second > left }
-                                    .minOfOrNull { it.second }?:Long.MAX_VALUE)
-
-                            newRanges.add(Pair(left, right - left - 1))
+                                (startingRange + rangeStep).coerceAtMost(transformationArray.filter { it.rangeLength > left }
+                                    .minOfOrNull { it.rangeLength } ?: Long.MAX_VALUE)
+                            newRanges.add(Range.getRangeFromStartEnd(left, right))
                         } else {
                             val (destinationStart, sourceStart, rangeLength) = rangeThatFits
                             right = (sourceStart + rangeLength).coerceAtMost(startingRange + rangeStep)
                             // conversion needed
                             val dx = destinationStart - sourceStart
-                            newRanges.add(Pair(left + dx, right - left - 1 + dx))
+                            newRanges.add(Range.getRangeFromStartEnd(left + dx, right + dx))
                         }
                         left = right
                     }
@@ -90,15 +96,15 @@ class Day05(private val input: String) : Day() {
             }
             rangesList
         }
-        return response.minOf { it.first }
+        return response.minOf { it.start }
 
     }
 
-    private fun getTransformations2dArray(): List<List<Triple<Long, Long, Long>>> {
+    private fun getTransformationsMatrix(): List<List<TransformationRange>> {
         return input.split("\n\n").drop(1).map { transformationChunk ->
             transformationChunk.lines().drop(1).map { transformationLine ->
                 val (destinationStart, sourceStart, rangeLength) = transformationLine.longs()
-                Triple(destinationStart, sourceStart, rangeLength)
+                TransformationRange(destinationStart, sourceStart, rangeLength)
             }
         }
     }
