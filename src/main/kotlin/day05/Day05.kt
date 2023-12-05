@@ -28,6 +28,17 @@ class Day05(private val input: String) : Day() {
         return seeds.min()
     }
 
+    private fun getRangeThatFits(
+        left: Long,
+        transformationArray: List<Triple<Long, Long, Long>>,
+    ): Triple<Long, Long, Long>? {
+        // this function needs to find if left sits under any transformationarray range, if not return null
+        return transformationArray.firstOrNull {
+            val (_, sourceStart, rangeLength) = it
+            left in (sourceStart..<(sourceStart + rangeLength))
+        }
+    }
+
     fun part2Long(): Long {
         // destinationstart sourcestart rangelength
         // if it isn't mapped then it is the same source and destination, seed 10 goes to soil 10
@@ -36,27 +47,50 @@ class Day05(private val input: String) : Day() {
 
         val transformations2dArray = getTransformations2dArray()
 
-        val response = chunkedSeeds.map { chunkSeed ->
-            // chunkSeed contains 2 numbers, the start and the range
-            println("starting chunk")
-            println(Instant.now())
-            (chunkSeed.first()..<(chunkSeed.first() + chunkSeed.last())).minOf { seedInt ->
-                // seedInt
-                var seedIntAux = seedInt
 
-                transformations2dArray.forEach { transformationArray ->
-                    seedIntAux = transformationArray.firstNotNullOfOrNull { transformation ->
-                        val (destinationStart, sourceStart, rangeLength) = transformation
-                        if (seedIntAux in (sourceStart..<sourceStart + rangeLength)) {
-                            destinationStart + (seedIntAux - sourceStart)
+        val response = chunkedSeeds.flatMap { chunkSeed ->
 
-                        } else null
-                    } ?: seedIntAux
+            // so we have a chunkseed range
+            val chunkSeedRange = Pair(chunkSeed.first(), chunkSeed.last())
+            var rangesList = listOf(chunkSeedRange)
+
+            transformations2dArray.forEach { transformationArray ->
+                // we need to convert this range in multiple ranges
+                val newRanges = mutableListOf<Pair<Long, Long>>()
+
+                rangesList.forEach { range ->
+                    val startingRange = range.first
+                    val rangeStep = range.second
+
+
+                    // start the iteration, i have one range and needs to be converted to 1 or more based on the transformationArray we have
+                    var left = startingRange
+
+                    while (left != (startingRange + rangeStep)) {
+                        var right = left
+                        val rangeThatFits = getRangeThatFits(left, transformationArray)
+                        if (rangeThatFits == null) {
+                            // we didn't find any range that fits
+                            right =
+                                (startingRange + rangeStep).coerceAtMost(transformationArray.filter { it.second > left }
+                                    .minOfOrNull { it.second }?:Long.MAX_VALUE)
+
+                            newRanges.add(Pair(left, right - left - 1))
+                        } else {
+                            val (destinationStart, sourceStart, rangeLength) = rangeThatFits
+                            right = (sourceStart + rangeLength).coerceAtMost(startingRange + rangeStep)
+                            // conversion needed
+                            val dx = destinationStart - sourceStart
+                            newRanges.add(Pair(left + dx, right - left - 1 + dx))
+                        }
+                        left = right
+                    }
                 }
-                seedIntAux
+                rangesList = newRanges
             }
+            rangesList
         }
-        return response.min()
+        return response.minOf { it.first }
 
     }
 
