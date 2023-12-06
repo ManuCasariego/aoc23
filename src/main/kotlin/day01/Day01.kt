@@ -3,14 +3,14 @@ package day01
 import Day
 
 class Day01(private val input: String) : Day() {
-    override fun part1(): Int {
+    override fun part1(): Long {
         return input.lines().sumOf { line ->
-            val digits = line.filter { it.isDigit() }.map { it.digitToInt() }
+            val digits = line.filter { it.isDigit() }.map { it.digitToInt().toLong() }
             digits.first() * 10 + digits.last()
         }
     }
 
-    override fun part2(): Int {
+    override fun part2(): Long {
 
         return input.lines().sumOf { line ->
             val first = stringToInt(Regex("(1|one|2|two|3|three|4|four|5|five|6|six|7|seven|8|eight|9|nine).*?").find(line)!!.value)
@@ -19,7 +19,7 @@ class Day01(private val input: String) : Day() {
         }
     }
 
-    private fun stringToInt(input: String): Int{
+    private fun stringToInt(input: String): Long{
         return when (input) {
             "one" -> 1
             "two" -> 2
@@ -39,7 +39,7 @@ class Day01(private val input: String) : Day() {
             "neves" -> 7
             "thgie" -> 8
             "enin" -> 9
-            else -> input.toInt()
+            else -> input.toLong()
         }
     }
 

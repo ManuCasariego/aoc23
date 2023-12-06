@@ -3,7 +3,7 @@ package day06
 import Day
 
 class Day06(private val input: String) : Day() {
-    override fun part1(): Int {
+    override fun part1(): Long {
         //Time:      7  15   30
         //Distance:  9  40  200
         // three races, first one last 7ms record distance is 9 mm
@@ -14,7 +14,7 @@ class Day06(private val input: String) : Day() {
         return records.mapIndexed() { index, record ->
             val time = times[index]
             getNumberOfCombinationsThatBeatTheRecord(time, record)
-        }.fold(1L) { acc, i -> acc * i }.toInt()
+        }.fold(1L) { acc, i -> acc * i }.toLong()
     }
 
     private fun String.longs() = this.split(" ").filter { it.isNotEmpty() }.map { it.toLong() }
@@ -28,14 +28,11 @@ class Day06(private val input: String) : Day() {
         return if (possibleSolution > 0) possibleSolution else 0L
     }
 
-    override fun part2(): Int {
+    override fun part2(): Long {
         val time = input.lines().first().substringAfter(":").replace(" ", "").toLong()
         val record = input.lines().last().substringAfter(":").replace(" ", "").toLong()
 
-
-        return getNumberOfCombinationsThatBeatTheRecord(time, record).toInt()
-
+        return getNumberOfCombinationsThatBeatTheRecord(time, record)
     }
-
 
 }

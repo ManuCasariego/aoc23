@@ -4,11 +4,11 @@ import Day
 import kotlin.math.pow
 
 class Day04(private val input: String) : Day() {
-    override fun part1(): Int {
+    override fun part1(): Long {
         return input.lines().sumOf { line ->
             val numberOfMatches = getNumberOfMatches(line)
             if (numberOfMatches == 0) 0 else 2f.pow(numberOfMatches - 1).toInt()
-        }
+        }.toLong()
     }
 
     private fun getNumberOfMatches(line: String): Int {
@@ -21,7 +21,7 @@ class Day04(private val input: String) : Day() {
         return secondNumbers.filter { it in firstNumbers }.size
     }
 
-    override fun part2(): Int {
+    override fun part2(): Long {
         val scratchCardCopies = input.lines().map { 1 }.toMutableList()
 
         input.lines().forEachIndexed { index, line ->
@@ -31,7 +31,7 @@ class Day04(private val input: String) : Day() {
                 if (index + dx < scratchCardCopies.size) scratchCardCopies[index + dx] += scratchCardCopies[index]
             }
         }
-        return scratchCardCopies.sum()
+        return scratchCardCopies.sum().toLong()
     }
 
 }

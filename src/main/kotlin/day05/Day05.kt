@@ -13,7 +13,7 @@ class Day05(private val input: String) : Day() {
     }
 
 
-    fun part1Long(): Long {
+    override fun part1(): Long {
         // destinationstart sourcestart rangelength
         // if it isn't mapped then it is the same source and destination, seed 10 goes to soil 10
 
@@ -47,7 +47,7 @@ class Day05(private val input: String) : Day() {
         }
     }
 
-    fun part2Long(): Long {
+    override fun part2(): Long {
         // destinationstart sourcestart rangelength
         // if it isn't mapped then it is the same source and destination, seed 10 goes to soil 10
 
@@ -111,11 +111,4 @@ class Day05(private val input: String) : Day() {
 
     fun String.longs() = this.split(" ").filterNot { it.isEmpty() }.map { it.toLong() }
 
-    override fun part1(): Int {
-        return 0
-    }
-
-    override fun part2(): Int {
-        return 0
-    }
 }

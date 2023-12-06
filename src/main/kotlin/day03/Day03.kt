@@ -4,7 +4,7 @@ import Day
 
 class Day03(private val input: String) : Day() {
 
-    override fun part1(): Int {
+    override fun part1(): Long {
         val board: List<List<Char>> = input.lines().map { it.toCharArray().toList() }
         // iterate and get numbers
         return input.lines().mapIndexed { y, line ->
@@ -18,10 +18,10 @@ class Day03(private val input: String) : Day() {
                 }
                 if (isValid) number else 0
             }.sum()
-        }.sum()
+        }.sum().toLong()
     }
 
-    override fun part2(): Int {
+    override fun part2(): Long {
 
         val board: List<List<Char>> = input.lines().map { line ->
             // transform line to list of chars
@@ -57,7 +57,7 @@ class Day03(private val input: String) : Day() {
         // to check
         return auxMap.values.map { set ->
             if (set.size == 2) set.fold(1) { a, b -> a * b.first } else 0
-        }.sum()
+        }.sum().toLong()
     }
 
     private fun isSymbolAdjacentToPosition(board: List<List<Char>>, x: Int, y: Int): Boolean {

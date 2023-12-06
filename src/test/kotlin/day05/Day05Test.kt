@@ -11,27 +11,27 @@ class Day05Test : DayTest() {
 
     @Test
     fun testSolvePart1WithExampleInput() {
-        val part1 = exampleDay.part1Long()
+        val part1 = exampleDay.part1()
         val expectedSolution = 35L
         Assertions.assertEquals(expectedSolution, part1, "Part 1 with example input should equal $expectedSolution")
     }
 
     @Test
     fun testSolvePart2WithExampleInput() {
-        val part2 = exampleDay.part2Long()
+        val part2 = exampleDay.part1()
         val expectedSolution = 46L
         Assertions.assertEquals(expectedSolution, part2, "Part 2 with example input should equal $expectedSolution")
     }
 
+
     @Test
     fun part1() {
-        println(day.part1Long())
+        solvePart1(day)
     }
 
     @Test
     fun part2() {
-        println(day.part2Long())
-
+        solvePart2(day)
     }
 
 }
