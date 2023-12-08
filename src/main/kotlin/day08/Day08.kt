@@ -4,23 +4,47 @@ import Day
 
 class Day08(private val input: String) : Day() {
     override fun part1(): Long {
+        val nodesMap = parseNodesMap(input)
+        val instructions = input.lines()[0]
+        return minDistanceToReachFromToNode(instructions, nodesMap, "AAA", listOf("ZZZ"))
+    }
+
+    override fun part2(): Long {
+        val nodesMap = parseNodesMap(input)
+        val instructions = input.lines()[0]
+
+        val startingNodes = nodesMap.filter { it.key.endsWith("A") }.map { it.key }
+        val endNodes = nodesMap.filter { it.key.endsWith("Z") }.map { it.key }
+        // this graph has the following properties:
+        // 1.   if you find a solution on x steps, you will get to the same state in x steps again,
+        //      so you only need to find the distance from every start to a valid end, and do the lcm of them all
+        //      and that will be the answer
+        // 2.   the distance x will always be a denominator of instructions.length
+        return startingNodes.map { minDistanceToReachFromToNode(instructions, nodesMap, it, endNodes) }
+            .reduce { acc, l -> lcm(acc, l) }
+    }
+
+    private fun parseNodesMap(input: String): Map<String, Node> {
         //AAA = (BBB, CCC)
-        val nodesMap: Map<String, Node> = input.lines().drop(2).map { line ->
+        return input.lines().drop(2).map { line ->
             val id = line.split(" ")[0]
             val left = line.substringAfter("(").split(",")[0]
             val right = line.substringAfter(", ").substringBefore(")")
-
             id to Node(id, left, right)
         }.toMap()
+    }
 
-        val instructions = input.lines()[0]
-        var foundZZZ = false
-        var currentNode = nodesMap["AAA"]
+    private fun minDistanceToReachFromToNode(
+        instructions: String,
+        nodesMap: Map<String, Node>,
+        fromNode: String,
+        toNode: List<String>,
+    ): Long {
+        var currentNode = nodesMap[fromNode]
         var steps = 0L
-        while (!foundZZZ) {
+        while (true) {
             instructions.forEach { instruction ->
-                if (currentNode!!.id == "ZZZ") {
-                    foundZZZ = true
+                if (toNode.contains(currentNode!!.id)) {
                     return steps
                 }
                 currentNode = when (instruction) {
@@ -29,127 +53,20 @@ class Day08(private val input: String) : Day() {
                     else -> throw IllegalArgumentException("This shouldn't happen")
                 }
                 steps++
-
             }
         }
-        return -1
     }
 
-
-    override fun part2(): Long {
-
-        //AAA = (BBB, CCC)
-        val nodesMap: Map<String, Node> = input.lines().drop(2).map { line ->
-            val id = line.split(" ")[0]
-            val left = line.substringAfter("(").split(",")[0]
-            val right = line.substringAfter(", ").substringBefore(")")
-
-            id to Node(id, left, right)
-        }.toMap()
-
-        val instructions = input.lines()[0]
-        var currentNodes = nodesMap.filter { it.key.endsWith("A") }.map { it.value }
-
-        val statesList = currentNodes.map {
-            mutableSetOf<NodeState>()
-        }.toList()
-        val cycleSizeList = currentNodes.map {
-            -1L
-        }.toMutableList()
-
-
-        val stepsList = currentNodes.map { 0L }.toMutableList()
-        var steps = 0L
-        while (true) {
-            instructions.forEachIndexed { instructionIndex, instruction ->
-                // also check if we magically found the solution without the cycles
-                if (currentNodes.all { it.id.endsWith("Z") } && stepsList.all { it == steps }) {
-                    return steps
-                }
-
-                // check if we found the cycle for all nodes
-                if (cycleSizeList.all { it != -1L }) {
-                    // we found the cycle for all nodes
-                    return firstMatchingStep(cycleSizeList, stepsList)
-                }
-
-                // do the steps
-                currentNodes = currentNodes.mapIndexed { nodeIndex, currentNode ->
-                    if (stepsList[nodeIndex] > steps) {
-                        currentNode
-                    } else {
-
-                        if (cycleSizeList[nodeIndex] != -1L) {
-                            // we already have the cycle for this node so we increment the steps based on his cycle
-                            stepsList[nodeIndex] += cycleSizeList[nodeIndex]
-                            currentNode
-                        } else {
-                            val newNode = when (instruction) {
-                                'L' -> nodesMap[currentNode!!.left]
-                                else -> nodesMap[currentNode!!.right]
-                            }
-                            stepsList[nodeIndex]++
-                            newNode!!
-                        }
-                    }
-                }
-                steps++
-
-
-                // check if we found a cycle
-                currentNodes.mapIndexed { nodeIndex, node -> nodeIndex to node }
-                    // we removethe nodes that already have a cycle
-                    .filter { cycleSizeList[it.first] == -1L }
-                    // we only can find a cycle if the node ends with Z
-                    .filter { it.second.id.endsWith("Z") }
-                    .forEach { pairIntNode ->
-                        var cycleFound = false
-                        statesList[pairIntNode.first].filter { it.nodeId == pairIntNode.second.id && it.instructionIndex == instructionIndex }
-                            .forEach { nodeState ->
-                                // we found a cycle, check if we already found it
-                                cycleSizeList[pairIntNode.first] = steps - nodeState.steps
-                                cycleFound = true
-                            }
-
-                        if (!cycleFound) {
-                            // we need to add the state to the set
-                            statesList[pairIntNode.first].add(NodeState(pairIntNode.second.id, instructionIndex, steps))
-                        }
-                    }
-            }
-
-
-        }
-
-
-    }
-    fun gcd(a: Long, b: Long): Long {
+    private fun gcd(a: Long, b: Long): Long {
         if (b == 0L) return a
         return gcd(b, a % b)
     }
 
-    fun lcm(a: Long, b: Long): Long {
+    private fun lcm(a: Long, b: Long): Long {
         return a * (b / gcd(a, b))
     }
 
-    private fun firstMatchingStep(steps: List<Long>, startingPoints: List<Long>): Long {
-        // find the LCM of all the steps
-        var lcm = steps[0]
-        for (i in 1 until steps.size) {
-            lcm = lcm(lcm, steps[i])
-        }
-        var currentStep = lcm
-
-
-        while (true) {
-            if (startingPoints.all { (currentStep - it) % steps[startingPoints.indexOf(it)] == 0L }) {
-                return currentStep
-            }
-            currentStep += lcm
-        }
-    }
-    private data class Node(val id: String, val left: String, val right: String)
-    private data class NodeState(val nodeId: String, val instructionIndex: Int, val steps: Long)
+    data class Node(val id: String, val left: String, val right: String)
 }
 
 
