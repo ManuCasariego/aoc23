@@ -70,15 +70,7 @@ class Day08(private val input: String) : Day() {
                 // check if we found the cycle for all nodes
                 if (cycleSizeList.all { it != -1L }) {
                     // we found the cycle for all nodes
-
-                    while (!stepsList.all { it == stepsList[0] }) {
-                        // until they are all the same
-                        val indexOfMin = stepsList.mapIndexed { index, stepsValue ->
-                            index to stepsValue
-                        }.minByOrNull { it.second }!!.first
-                        stepsList[indexOfMin] += cycleSizeList[indexOfMin]
-                    }
-                    return stepsList[0]
+                    return firstMatchingStep(cycleSizeList, stepsList)
                 }
 
                 // do the steps
@@ -131,7 +123,31 @@ class Day08(private val input: String) : Day() {
 
 
     }
+    fun gcd(a: Long, b: Long): Long {
+        if (b == 0L) return a
+        return gcd(b, a % b)
+    }
 
+    fun lcm(a: Long, b: Long): Long {
+        return a * (b / gcd(a, b))
+    }
+
+    private fun firstMatchingStep(steps: List<Long>, startingPoints: List<Long>): Long {
+        // find the LCM of all the steps
+        var lcm = steps[0]
+        for (i in 1 until steps.size) {
+            lcm = lcm(lcm, steps[i])
+        }
+        var currentStep = lcm
+
+
+        while (true) {
+            if (startingPoints.all { (currentStep - it) % steps[startingPoints.indexOf(it)] == 0L }) {
+                return currentStep
+            }
+            currentStep += lcm
+        }
+    }
     private data class Node(val id: String, val left: String, val right: String)
     private data class NodeState(val nodeId: String, val instructionIndex: Int, val steps: Long)
 }
