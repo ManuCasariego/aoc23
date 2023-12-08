@@ -11,15 +11,27 @@ class Day08Test : DayTest() {
 
     @Test
     fun testSolvePart1WithExampleInput() {
-        val part1 = solvePart1(exampleDay)
-        val expectedSolution = 0L
+        val dayExamplePart1 = Day08(
+            """RL
+
+AAA = (BBB, CCC)
+BBB = (DDD, EEE)
+CCC = (ZZZ, GGG)
+DDD = (DDD, DDD)
+EEE = (EEE, EEE)
+GGG = (GGG, GGG)
+ZZZ = (ZZZ, ZZZ)"""
+        )
+
+        val part1 = solvePart1(dayExamplePart1)
+        val expectedSolution = 2L
         Assertions.assertEquals(expectedSolution, part1, "Part 1 with example input should equal $expectedSolution")
     }
 
     @Test
     fun testSolvePart2WithExampleInput() {
         val part2 = solvePart2(exampleDay)
-        val expectedSolution = 0L
+        val expectedSolution = 6L
         Assertions.assertEquals(expectedSolution, part2, "Part 2 with example input should equal $expectedSolution")
     }
 
