@@ -8,25 +8,21 @@ class Day09(private val input: String) : Day() {
             line.longs()
         }
 
+        return calculatePart1(inputLongs)
+    }
+
+    private fun calculatePart1(inputLongs: List<List<Long>>): Long {
         return inputLongs.sumOf { longs ->
-            // new structure
-            val nextLevels = buildNextLevels(longs)
-
-            // we got to the all zeroes scenario
-            // we add a zero and build our way up
-            var currentNumber = 0L
-
-            nextLevels.reversed().drop(1).forEach { level ->
-                currentNumber = level.last() + currentNumber
+            buildNextLevels(longs).reversed().drop(1).sumOf { level ->
+                level.last()
             }
-            currentNumber
         }
     }
 
-    private fun buildNextLevels(input: List<Long>): List<MutableList<Long>> {
-        val nextLevels = mutableListOf<MutableList<Long>>()
+    private fun buildNextLevels(input: List<Long>): List<List<Long>> {
+        val nextLevels = mutableListOf<List<Long>>()
         // let's go down first
-        nextLevels.add(input.toMutableList())
+        nextLevels.add(input)
         while (nextLevels.last().size != 1 && !nextLevels.last().all { it == 0L }) {
             val nextLevel = calculateNextLevel(nextLevels.last())
             nextLevels.add(nextLevel)
@@ -34,33 +30,17 @@ class Day09(private val input: String) : Day() {
         return nextLevels
     }
 
-    private fun calculateNextLevel(input: List<Long>): MutableList<Long> {
-        val nextLevel = mutableListOf<Long>()
-        input.forEachIndexed { index, l ->
-            if (index != input.size - 1) nextLevel.add(input[index + 1] - l)
+    private fun calculateNextLevel(input: List<Long>): List<Long> {
+        return input.dropLast(1).mapIndexed { index, l ->
+            input[index + 1] - l
         }
-        return nextLevel
     }
 
     private fun String.longs() = this.split(" ").filter { it.isNotEmpty() }.map { it.toLong() }
     override fun part2(): Long {
         val inputLongs = input.lines().map { line ->
-            line.longs()
+            line.longs().reversed()
         }
-
-        return inputLongs.sumOf { longs ->
-            // new structure
-            val nextLevels = buildNextLevels(longs)
-
-            // we got to the all zeroes scenario
-            // we add a zero and build our way up
-            var currentNumber = 0L
-
-            nextLevels.reversed().drop(1).forEach { level ->
-                currentNumber = level.first() - currentNumber
-            }
-            currentNumber
-        }
-
+        return calculatePart1(inputLongs)
     }
 }
