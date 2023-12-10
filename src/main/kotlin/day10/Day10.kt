@@ -94,36 +94,12 @@ class Day10(private val input: String) : Day() {
             // indexy is y, it grews going south
 
             var outside = true
-            var parallelGoingFromUp = false
-            var parallelGoingFromDown = false
             line.forEachIndexed { indexX, char ->
                 // indexx is x, it grews going east
-                if (char == '.' || !graphParts.contains(Pair(indexX, indexY))) {
+                if (!graphParts.contains(Pair(indexX, indexY))) {
                     if (!outside) insidePoints.add(Pair(indexX, indexY))
-                    parallelGoingFromDown = false
-                    parallelGoingFromUp = false
-                } else if (char == '|') {
+                } else if (char == '|' || char == 'F' || char == '7') {
                     outside = !outside
-                } else if (char == 'F') {
-                    parallelGoingFromUp = true
-                } else if (char == 'L') {
-                    parallelGoingFromDown = true
-                } else if (char == '7') {
-                    if (parallelGoingFromDown) {
-                        parallelGoingFromDown = false
-                        outside = !outside
-                    } else if (parallelGoingFromUp) {
-                        // nothing happens we are still on the same side
-                        parallelGoingFromUp = false
-                    }
-                } else if (char == 'J') {
-                    if (parallelGoingFromUp) {
-                        parallelGoingFromUp = false
-                        outside = !outside
-                    } else if (parallelGoingFromDown) {
-                        // this shouldn't happen
-                        parallelGoingFromDown = false
-                    }
                 }
             }
         }
