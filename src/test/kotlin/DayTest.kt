@@ -25,7 +25,7 @@ open class DayTest {
     protected fun String.readInput(): String {
         val path = "src/test/kotlin/day${this}/input"
         if (!File(path).exists()) {
-            downloadFileIfNotExists("https://adventofcode.com/2023/day/${this}/input", path)
+            downloadFileIfNotExists("https://adventofcode.com/2023/day/${this.removePrefix("0")}/input", path)
         }
         return File(path).readText().trim()
     }
