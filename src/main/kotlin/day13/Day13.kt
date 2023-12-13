@@ -1,6 +1,6 @@
 package day13
-
 import Day
+import Utils.splitByEmpty
 
 class Day13(private val input: String) : Day() {
 
@@ -11,7 +11,7 @@ class Day13(private val input: String) : Day() {
         }
     }
 
-    private fun isSolutionPossible(elements: IntRange, columns: List<List<Int>>): Boolean {
+    private fun isSolutionPossible(elements: IntRange, columns: List<String>): Boolean {
         return if (elements.count() % 2 == 0) {
             return elements.all { index ->
                 val mirroredIndex = elements.last - (index - elements.first)
@@ -20,12 +20,10 @@ class Day13(private val input: String) : Day() {
         } else false
     }
 
-    private fun transpose(patternBoard: List<List<Int>>): List<List<Int>> {
-        val columns = mutableListOf<List<Int>>()
-        (0..<patternBoard.first().size).forEach { index ->
-            columns.add(patternBoard.map { line -> line[index] })
+    private fun transpose(patternBoard: List<String>): List<String> {
+        return patternBoard.first().indices.map { index ->
+            patternBoard.map { line -> line[index] }.joinToString("")
         }
-        return columns
     }
 
     override fun part2(): Long {
@@ -33,14 +31,15 @@ class Day13(private val input: String) : Day() {
 
         return patternBoards.sumOf { patternBoard ->
             val solutions = getAllSolutionsForPatternBoard(patternBoard)
-            (0..(patternBoard.size * patternBoard.first().size)).forEach { index ->
+            (0..(patternBoard.size * patternBoard.first().length)).forEach { index ->
                 val mutatedPatternBoard = patternBoard.mapIndexed { lineIndex, line ->
                     line.mapIndexed { columnIndex, value ->
-                        if (lineIndex * line.size + columnIndex == index) {
-                            if (value == 0) 1 else 0
+                        if (lineIndex * line.length + columnIndex == index) {
+                            if (value == '.') '#' else '.'
                         } else value
                     }
-                }
+                }.map { it.joinToString("") }
+
                 val mutatedSolution =
                     getAllSolutionsForPatternBoard(mutatedPatternBoard).filter { it != solutions.first() }
                 if (mutatedSolution.isNotEmpty()) {
@@ -51,18 +50,18 @@ class Day13(private val input: String) : Day() {
         }
     }
 
-    private fun indicesOfMatchInLine(line: List<Int>, toSearchList: List<List<Int>>): List<Int> {
+    private fun indicesOfMatchInLine(line: String, toSearchList: List<String>): List<Int> {
         return toSearchList.mapIndexed { index, toSearchLine ->
             if (line == toSearchLine) index
             else -1
         }.filter { it != -1 }
     }
 
-    private fun getAllSolutionsForPatternBoard(patternBoard: List<List<Int>>): List<Long> {
+    private fun getAllSolutionsForPatternBoard(patternBoard: List<String>): List<Long> {
         return (getTotalHorizontal(patternBoard).map { it * 100L } + getTotalHorizontal(transpose(patternBoard)))
     }
 
-    private fun getTotalHorizontal(patternBoard: List<List<Int>>): List<Long> {
+    private fun getTotalHorizontal(patternBoard: List<String>): List<Long> {
         val horizontalLastLineRanges =
             indicesOfMatchInLine(patternBoard.last(), patternBoard.dropLast(1)).map { index ->
                 val elements = (index..<patternBoard.size)
@@ -81,18 +80,7 @@ class Day13(private val input: String) : Day() {
         }
     }
 
-    private fun buildPatternBoards(): List<List<List<Int>>> {
-        val patterns = input.split("\n\n")
-        return patterns.map { pattern ->
-            val patternBoard = pattern.lines().map { line ->
-                line.map { char ->
-                    when (char) {
-                        '.' -> 0
-                        else -> 1
-                    }
-                }
-            }
-            patternBoard
-        }
+    private fun buildPatternBoards(): List<List<String>> {
+        return input.lines().splitByEmpty()
     }
 }
