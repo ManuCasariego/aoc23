@@ -13,7 +13,6 @@ class Day13(private val input: String) : Day() {
 
     private fun isSolutionPossible(elements: IntRange, columns: List<List<Int>>): Boolean {
         return if (elements.count() % 2 == 0) {
-            // we good
             return elements.all { index ->
                 val mirroredIndex = elements.last - (index - elements.first)
                 columns[index] == columns[mirroredIndex]
@@ -21,7 +20,7 @@ class Day13(private val input: String) : Day() {
         } else false
     }
 
-    private fun getColumns(patternBoard: List<List<Int>>): List<List<Int>> {
+    private fun transpose(patternBoard: List<List<Int>>): List<List<Int>> {
         val columns = mutableListOf<List<Int>>()
         (0..<patternBoard.first().size).forEach { index ->
             columns.add(patternBoard.map { line -> line[index] })
@@ -60,30 +59,10 @@ class Day13(private val input: String) : Day() {
     }
 
     private fun getAllSolutionsForPatternBoard(patternBoard: List<List<Int>>): List<Long> {
-        val solutions = mutableListOf<Long>()
-        // horizontal last line
-
-        val everythingHorizontal =
-            getTotalHorizontal(patternBoard)
-                .filter { elements ->
-                    isSolutionPossible(elements, columns = patternBoard)
-                }.map { elements ->
-                    (elements.count() / 2 + elements.first) * 100L
-                }
-
-        val columns = getColumns(patternBoard)
-        val everythingVertical = getTotalHorizontal(columns)
-            .filter { elements ->
-                isSolutionPossible(elements, columns = columns)
-            }.map { elements ->
-                (elements.count() / 2 + elements.first).toLong()
-            }
-        solutions.addAll(everythingHorizontal)
-        solutions.addAll(everythingVertical)
-        return solutions
+        return (getTotalHorizontal(patternBoard).map { it * 100L } + getTotalHorizontal(transpose(patternBoard)))
     }
 
-    private fun getTotalHorizontal(patternBoard: List<List<Int>>): List<IntRange> {
+    private fun getTotalHorizontal(patternBoard: List<List<Int>>): List<Long> {
         val horizontalLastLineRanges =
             indicesOfMatchInLine(patternBoard.last(), patternBoard.dropLast(1)).map { index ->
                 val elements = (index..<patternBoard.size)
@@ -95,7 +74,11 @@ class Day13(private val input: String) : Day() {
                 val elements = (0..index)
                 elements
             }
-        return (horizontalLastLineRanges + horizontalFirstLineRanges)
+        return (horizontalLastLineRanges + horizontalFirstLineRanges).filter { elements ->
+            isSolutionPossible(elements, columns = patternBoard)
+        }.map { elements ->
+            (elements.count() / 2 + elements.first).toLong()
+        }
     }
 
     private fun buildPatternBoards(): List<List<List<Int>>> {
