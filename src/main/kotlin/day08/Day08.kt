@@ -1,6 +1,7 @@
 package day08
 
 import Day
+import Utils.lcm
 
 class Day08(private val input: String) : Day() {
     override fun part1(): Long {
@@ -55,15 +56,6 @@ class Day08(private val input: String) : Day() {
                 steps++
             }
         }
-    }
-
-    private fun gcd(a: Long, b: Long): Long {
-        if (b == 0L) return a
-        return gcd(b, a % b)
-    }
-
-    private fun lcm(a: Long, b: Long): Long {
-        return a * (b / gcd(a, b))
     }
 
     data class Node(val id: String, val left: String, val right: String)

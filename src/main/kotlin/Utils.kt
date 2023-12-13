@@ -49,4 +49,19 @@ object Utils {
         }
     }
 
+    fun gcd(a: Long, b: Long): Long {
+        if (b == 0L) return a
+        return gcd(b, a % b)
+    }
+
+    fun lcm(a: Long, b: Long): Long {
+        return a * (b / gcd(a, b))
+    }
+
+    fun List<String>.transpose(): List<String> {
+        return this.first().indices.map { index ->
+            this.map { line -> line[index] }.joinToString("")
+        }
+    }
+
 }

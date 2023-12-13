@@ -1,6 +1,8 @@
 package day13
+
 import Day
 import Utils.splitByEmpty
+import Utils.transpose
 
 class Day13(private val input: String) : Day() {
 
@@ -18,12 +20,6 @@ class Day13(private val input: String) : Day() {
                 columns[index] == columns[mirroredIndex]
             }
         } else false
-    }
-
-    private fun transpose(patternBoard: List<String>): List<String> {
-        return patternBoard.first().indices.map { index ->
-            patternBoard.map { line -> line[index] }.joinToString("")
-        }
     }
 
     override fun part2(): Long {
@@ -58,7 +54,7 @@ class Day13(private val input: String) : Day() {
     }
 
     private fun getAllSolutionsForPatternBoard(patternBoard: List<String>): List<Long> {
-        return (getTotalHorizontal(patternBoard).map { it * 100L } + getTotalHorizontal(transpose(patternBoard)))
+        return (getTotalHorizontal(patternBoard).map { it * 100L } + getTotalHorizontal(patternBoard.transpose()))
     }
 
     private fun getTotalHorizontal(patternBoard: List<String>): List<Long> {
