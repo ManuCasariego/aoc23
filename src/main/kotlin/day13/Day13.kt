@@ -5,30 +5,10 @@ import Day
 class Day13(private val input: String) : Day() {
 
     override fun part1(): Long {
-        //ash (.) and rocks (#)
-        //dd up the number of columns to the left of each vertical line of reflection; to that, also add 100 multiplied
-        // by the number of rows above each horizontal line of reflection.
-        val patterns = input.split("\n\n")
-        val patternBoards = patterns.map { pattern ->
-            val patternBoard = pattern.lines().map { line ->
-                line.map { char ->
-                    when (char) {
-                        '.' -> 0
-                        else -> 1
-                    }
-                }
-            }
-            patternBoard
+        val patternBoards = buildPatternBoards()
+        return patternBoards.sumOf { patternBoard ->
+            getAllSolutionsForPatternBoard(patternBoard).first()
         }
-
-        val h = patternBoards.map { patternBoard ->
-            // for each pattern board, get all possible solutions
-            val solutions = getAllSolutionsForPatternBoard(patternBoard)
-            solutions.first()
-        }
-
-        return h.sum()
-
     }
 
     private fun isSolutionPossible(elements: IntRange, columns: List<List<Int>>): Boolean {
@@ -50,28 +30,11 @@ class Day13(private val input: String) : Day() {
     }
 
     override fun part2(): Long {
-        //ash (.) and rocks (#)
-        // add up the number of columns to the left of each vertical line of reflection; to that, also add 100 multiplied
-        // by the number of rows above each horizontal line of reflection.
-        val patterns = input.split("\n\n")
-        val patternBoards = patterns.map { pattern ->
-            val patternBoard = pattern.lines().map { line ->
-                line.map { char ->
-                    when (char) {
-                        '.' -> 0
-                        else -> 1
-                    }
-                }
-            }
-            patternBoard
-        }
+        val patternBoards = buildPatternBoards()
 
-        val h = patternBoards.map { patternBoard ->
-            // for each pattern board, get all possible solutions
+        return patternBoards.sumOf { patternBoard ->
             val solutions = getAllSolutionsForPatternBoard(patternBoard)
-            // now force brute to iterate through every possible value on patternboard until we find another solution
             (0..(patternBoard.size * patternBoard.first().size)).forEach { index ->
-                // i got a list of list of ints, i need to mutate the value at index n to be the opposite, from 1 to 0 or 0 to 1
                 val mutatedPatternBoard = patternBoard.mapIndexed { lineIndex, line ->
                     line.mapIndexed { columnIndex, value ->
                         if (lineIndex * line.size + columnIndex == index) {
@@ -82,13 +45,11 @@ class Day13(private val input: String) : Day() {
                 val mutatedSolution =
                     getAllSolutionsForPatternBoard(mutatedPatternBoard).filter { it != solutions.first() }
                 if (mutatedSolution.isNotEmpty()) {
-                    return@map mutatedSolution.first()
+                    return@sumOf mutatedSolution.first()
                 }
             }
             0L
         }
-
-        return h.sum()
     }
 
     private fun indicesOfMatchInLine(line: List<Int>, toSearchList: List<List<Int>>): List<Int> {
@@ -98,9 +59,31 @@ class Day13(private val input: String) : Day() {
         }.filter { it != -1 }
     }
 
-    fun getAllSolutionsForPatternBoard(patternBoard: List<List<Int>>): List<Long> {
+    private fun getAllSolutionsForPatternBoard(patternBoard: List<List<Int>>): List<Long> {
         val solutions = mutableListOf<Long>()
         // horizontal last line
+
+        val everythingHorizontal =
+            getTotalHorizontal(patternBoard)
+                .filter { elements ->
+                    isSolutionPossible(elements, columns = patternBoard)
+                }.map { elements ->
+                    (elements.count() / 2 + elements.first) * 100L
+                }
+
+        val columns = getColumns(patternBoard)
+        val everythingVertical = getTotalHorizontal(columns)
+            .filter { elements ->
+                isSolutionPossible(elements, columns = columns)
+            }.map { elements ->
+                (elements.count() / 2 + elements.first).toLong()
+            }
+        solutions.addAll(everythingHorizontal)
+        solutions.addAll(everythingVertical)
+        return solutions
+    }
+
+    private fun getTotalHorizontal(patternBoard: List<List<Int>>): List<IntRange> {
         val horizontalLastLineRanges =
             indicesOfMatchInLine(patternBoard.last(), patternBoard.dropLast(1)).map { index ->
                 val elements = (index..<patternBoard.size)
@@ -112,39 +95,21 @@ class Day13(private val input: String) : Day() {
                 val elements = (0..index)
                 elements
             }
+        return (horizontalLastLineRanges + horizontalFirstLineRanges)
+    }
 
-        val columns = getColumns(patternBoard)
-
-        val verticalFirstLineRanges =
-            indicesOfMatchInLine(columns.first(), columns.drop(1)).map { it + 1 }.map { index ->
-                val elements = (0..index)
-                elements
-            }
-
-        val verticalLastLineRanges =
-            indicesOfMatchInLine(columns.last(), columns.dropLast(1)).map { index ->
-                val elements = (index..<columns.size)
-                elements
-            }
-
-        val everythingHorizontal =
-            (horizontalLastLineRanges + horizontalFirstLineRanges)
-                .filter { elements ->
-                    val isSolutionPossible = isSolutionPossible(elements, columns = patternBoard)
-                    isSolutionPossible
-                }.map { elements ->
-                    (elements.count() / 2 + elements.first) * 100L
+    private fun buildPatternBoards(): List<List<List<Int>>> {
+        val patterns = input.split("\n\n")
+        return patterns.map { pattern ->
+            val patternBoard = pattern.lines().map { line ->
+                line.map { char ->
+                    when (char) {
+                        '.' -> 0
+                        else -> 1
+                    }
                 }
-
-        val everythingVertical = (verticalFirstLineRanges + verticalLastLineRanges)
-            .filter { elements ->
-                val isSolutionPossible = isSolutionPossible(elements, columns = columns)
-                isSolutionPossible
-            }.map { elements ->
-                (elements.count() / 2 + elements.first).toLong()
             }
-        solutions.addAll(everythingHorizontal)
-        solutions.addAll(everythingVertical)
-        return solutions
+            patternBoard
+        }
     }
 }
