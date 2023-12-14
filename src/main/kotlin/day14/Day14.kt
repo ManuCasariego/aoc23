@@ -14,7 +14,7 @@ class Day14(private val input: String) : Day() {
         return calculateValue(newRoundRocks)
     }
 
-    private fun parseRocks(): Pair<MutableSet<Rock>, MutableSet<Rock>> {
+    private fun parseRocks(): Pair<Set<Rock>, Set<Rock>> {
         val roundRocks = mutableSetOf<Rock>()
         val cubeRocks = mutableSetOf<Rock>()
 
@@ -38,26 +38,19 @@ class Day14(private val input: String) : Day() {
         var (roundRocks, cubeRocks) = parseRocks()
         val statesMap = mutableMapOf<Set<Rock>, Int>()
 
-        val total = 1_000_000_000
-        var cycleLength = 0
+        val numberOfIterations = 1_000_000_000
         var currentIteration = 0
-        while (currentIteration < total) {
-            if (roundRocks in statesMap) {
-                cycleLength = currentIteration - statesMap[roundRocks]!!
-                break
-            }
+
+        while (!statesMap.contains(roundRocks)) {
             statesMap[roundRocks] = currentIteration
             roundRocks = do1Cycle(roundRocks, cubeRocks).toMutableSet()
             currentIteration++
         }
-        if (cycleLength > 0) {
-            val remainingCycles = (total - currentIteration) % cycleLength
-            (1..remainingCycles).forEach { _ ->
-                roundRocks = do1Cycle(roundRocks, cubeRocks).toMutableSet()
-            }
 
-        }
-        return calculateValue(roundRocks)
+        val cycleLength = currentIteration - statesMap[roundRocks]!!
+        val remainingCycles = (numberOfIterations - currentIteration) % cycleLength
+        val manuLength = statesMap.size - (cycleLength - remainingCycles)
+        return calculateValue(statesMap.entries.filterIndexed { index, _ -> index == manuLength }.first().key)
     }
 
     private fun calculateValue(roundRocks: Set<Rock>): Long {
