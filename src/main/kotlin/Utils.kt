@@ -34,6 +34,9 @@ object Utils {
         val maxX: Int get() = if (board.isNotEmpty()) board[0].size - 1 else 0
         val minY: Int get() = 0
         val maxY: Int get() = board.size - 1
+        fun inBounds(x: Int, y: Int): Boolean {
+            return x in minX..maxX && y in minY..maxY
+        }
 
         companion object {
             fun <T> fromStringLines(lines: List<String>, converter: (Char) -> T): Board<T> {

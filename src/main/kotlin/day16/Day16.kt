@@ -8,35 +8,38 @@ class Day16(private val input: String) : Day() {
         //empty space (.), mirrors (/ and \), and splitters (| and -).
 
         val board = Board.fromStringLines(input.lines())
-
-
         return numberOfBeams(board, Pair(Pair(0, 0), Direction.EAST)).toLong()
     }
 
-    private fun numberOfBeams(board: Board<Char>, startingLight: Pair<Pair<Int, Int>, Direction>): Int {
+    override fun part2(): Long {
+        val board = Board.fromStringLines(input.lines())
 
-        val intBoard = MutableList(input.lines().size) { _ ->
-            MutableList(input.lines().first().length) { _ ->
-                0
-            }
+        val numberOfBeamsList = mutableListOf<Int>()
+        for (y in 0 until board.board.size) {
+            numberOfBeamsList.add(numberOfBeams(board, Pair(Pair(0, y), Direction.EAST)))
+            numberOfBeamsList.add(numberOfBeams(board, Pair(Pair(board.board[0].size - 1, y), Direction.WEST)))
         }
+        for (x in 0 until board.board[0].size) {
+            numberOfBeamsList.add(numberOfBeams(board, Pair(Pair(x, 0), Direction.SOUTH)))
+            numberOfBeamsList.add(numberOfBeams(board, Pair(Pair(x, board.board.size - 1), Direction.NORTH)))
+        }
+
+        return numberOfBeamsList.max().toLong()
+
+    }
+
+    private fun numberOfBeams(board: Board<Char>, startingLight: Pair<Pair<Int, Int>, Direction>): Int {
+        val intBoard = MutableList(input.lines().size) { MutableList(input.lines().first().length) { 0 } }
         val lightQueue = ArrayDeque<Pair<Pair<Int, Int>, Direction>>()
 
-        var nextDirs = getNextDirs(board, startingLight)
-        nextDirs.forEach {
-            lightQueue.add(Pair(startingLight.first, it))
-        }
-
         intBoard[startingLight.first.second][startingLight.first.first] = 1
-
         val uniqueLights = mutableSetOf<Pair<Pair<Int, Int>, Direction>>()
-        while (lightQueue.isNotEmpty()) {
+        lightQueue.add(startingLight)
+        do {
             val currLight = lightQueue.removeFirst()
-            if (currLight in uniqueLights) {
-                continue
-            } else {
-                uniqueLights.add(currLight)
-            }
+            if (currLight in uniqueLights) continue
+            else uniqueLights.add(currLight)
+
             val (pos, dir) = currLight
             val (x, y) = pos
             val (dx, dy) = when (dir) {
@@ -45,23 +48,20 @@ class Day16(private val input: String) : Day() {
                 Direction.SOUTH -> Pair(0, 1)
                 Direction.WEST -> Pair(-1, 0)
             }
-
             val nextPos = Pair(x + dx, y + dy)
 
-            if (nextPos.first < 0 || nextPos.first >= board.board[0].size || nextPos.second < 0 || nextPos.second >= board.board.size) {
+            if (!board.inBounds(nextPos.first, nextPos.second)) {
                 // light is out of bounds
                 continue
             } else {
                 intBoard[nextPos.second][nextPos.first] = 1
             }
 
-            nextDirs = getNextDirs(board, nextPos to dir)
+            val nextDirs = getNextDirs(board, nextPos to dir)
             nextDirs.forEach {
                 lightQueue.add(Pair(nextPos, it))
             }
-        }
-
-
+        } while (lightQueue.isNotEmpty())
         return intBoard.flatten().sumOf { it }
     }
 
@@ -110,22 +110,5 @@ class Day16(private val input: String) : Day() {
             else -> throw Exception("Unknown char ${board.board[light.first.second][light.first.first]}")
 
         }
-    }
-
-    override fun part2(): Long {
-        val board = Board.fromStringLines(input.lines())
-
-        val numberOfBeamsList = mutableListOf<Int>()
-        for (y in 0 until board.board.size) {
-            numberOfBeamsList.add(numberOfBeams(board, Pair(Pair(0, y), Direction.EAST)))
-            numberOfBeamsList.add(numberOfBeams(board, Pair(Pair(board.board[0].size - 1, y), Direction.WEST)))
-        }
-        for (x in 0 until board.board[0].size) {
-            numberOfBeamsList.add(numberOfBeams(board, Pair(Pair(x, 0), Direction.SOUTH)))
-            numberOfBeamsList.add(numberOfBeams(board, Pair(Pair(x, board.board.size - 1), Direction.NORTH)))
-        }
-
-        return numberOfBeamsList.max().toLong()
-
     }
 }
