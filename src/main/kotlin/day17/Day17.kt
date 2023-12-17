@@ -22,11 +22,14 @@ class Day17(private val input: String) : Day() {
         // there's "only" 140x140 positions,
         // let's try djikstra's algorithm
 
-        return solution { crucible:Crucible -> crucible.possibleDirectionsToMovePart1()}
+        return solution(maxStepsSameDirection = 3, turningRestriction = 0)
     }
 
 
-    private fun solution (minimumStepsBeforeStop: Int = 0, functionToGetDirections : (Crucible) -> Set<Pair<Direction, Int>>):Long{
+    private fun solution(
+        maxStepsSameDirection: Int,
+        turningRestriction: Int = 0
+    ): Long {
         val board = Utils.Board.fromStringLines(input.lines()) { it.digitToInt() }
 
         // create a min heap map to store min positions
@@ -40,9 +43,10 @@ class Day17(private val input: String) : Day() {
         while (!queue.isEmpty()) {
             val crucible = queue.poll()
             if (crucible.x == board.maxX && crucible.y == board.maxY) {
-                if (crucible.steps >= minimumStepsBeforeStop) return crucible.heatLoss.toLong()
+                // turning restriction and max steps same direction restriction is the same
+                if (crucible.steps >= turningRestriction) return crucible.heatLoss.toLong()
             }
-            val directions = functionToGetDirections(crucible)
+            val directions = crucible.possibleDirectionsToMove(turningRestriction, maxStepsSameDirection)
             directions.forEach { (direction, steps) ->
                 val (dx, dy) = when (direction) {
                     Direction.NORTH -> Pair(0, -1)
@@ -62,26 +66,17 @@ class Day17(private val input: String) : Day() {
 
         return 0L
     }
+
     override fun part2(): Long {
-        return solution(4) { crucible:Crucible -> crucible.possibleDirectionsToMovePart2()}
+        return solution(maxStepsSameDirection = 10, turningRestriction = 4)
     }
 
     data class State(val x: Int, val y: Int, val direction: Direction, val steps: Int)
     data class Crucible(val x: Int, val y: Int, val heatLoss: Int, val direction: Direction, val steps: Int) {
-        fun possibleDirectionsToMovePart1(): Set<Pair<Direction, Int>> {
-            return listOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST).filter { direction ->
-                direction != this.direction.opposite()
-            }.filter { direction ->
-                // we can only move 3 steps in a row
-                if (this.steps == 3) direction != this.direction
-                else true
-            }.map { direction ->
-                if (direction == this.direction) Pair(direction, this.steps + 1)
-                else Pair(direction, 1)
-            }.toSet()
-        }
-
-        fun possibleDirectionsToMovePart2(): Set<Pair<Direction, Int>> {
+        fun possibleDirectionsToMove(
+            turningRestriction: Int = 0,
+            maxStepsSameDirection: Int
+        ): Set<Pair<Direction, Int>> {
             // special case for the first move, when we start I can only go east on this part but if steps is 0 we can go any direction
             if (this.steps == 0) return setOf(
                 Pair(Direction.NORTH, 1),
@@ -90,20 +85,23 @@ class Day17(private val input: String) : Day() {
                 Pair(Direction.WEST, 1)
             )
 
-            return listOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST).filter { direction ->
-                direction != this.direction.opposite()
-            }.filter { direction ->
-                // we can only turn if we have done 4 steps or more
-                if (this.steps < 4) direction == this.direction
-                else true
-            }.filter { direction ->
-                // it can move a max of 10 steps facing the same direction
-                if (this.steps == 10) direction != this.direction
-                else true
-            }.map { direction ->
-                if (direction == this.direction) Pair(direction, this.steps + 1)
-                else Pair(direction, 1)
-            }.toSet()
+            return listOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST).asSequence()
+                .filter { direction ->
+                    // no 180 turning
+                    direction != this.direction.opposite()
+                }.filter { direction ->
+                    // turning restriction
+                    if (this.steps < turningRestriction) direction == this.direction
+                    else true
+                }.filter { direction ->
+                    // max steps to the same direction restriction
+                    if (this.steps == maxStepsSameDirection) direction != this.direction
+                    else true
+                }.map { direction ->
+                    // transforming the result to a pair of direction and steps
+                    if (direction == this.direction) Pair(direction, this.steps + 1)
+                    else Pair(direction, 1)
+                }.toSet()
         }
     }
 }

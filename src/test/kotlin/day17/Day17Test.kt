@@ -1,7 +1,6 @@
 package day17
 
 import DayTest
-import day16.Day16
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -37,25 +36,6 @@ class Day17Test : DayTest() {
     }
 
     @Test
-    fun crucibleTest() {
-        val crucible = Day17.Crucible(0, 0, 0, Day16.Direction.NORTH, 3)
-        val possibleDirectionsToMove = crucible.possibleDirectionsToMovePart1()
-
-        Assertions.assertTrue(possibleDirectionsToMove.size == 2)
-        Assertions.assertTrue(possibleDirectionsToMove.contains(Pair(Day16.Direction.EAST, 1)))
-        Assertions.assertTrue(possibleDirectionsToMove.contains(Pair(Day16.Direction.WEST, 1)))
-    }
-
-    @Test
-    fun crucibleTestPart2() {
-        val crucible = Day17.Crucible(0, 0, 0, Day16.Direction.NORTH, 1)
-        val possibleDirectionsToMove = crucible.possibleDirectionsToMovePart2()
-
-        Assertions.assertTrue(possibleDirectionsToMove.size == 1)
-        Assertions.assertTrue(possibleDirectionsToMove.contains(Pair(Day16.Direction.NORTH, 2)))
-    }
-
-    @Test
     fun anotherExamplePart2() {
         val anotherExampleDay = Day17(
             """111111111111
@@ -69,5 +49,4 @@ class Day17Test : DayTest() {
         val expectedSolution = 71L
         Assertions.assertEquals(expectedSolution, part2, "Part 2 with example input should equal $expectedSolution")
     }
-
 }
