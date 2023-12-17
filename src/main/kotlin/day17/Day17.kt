@@ -22,7 +22,11 @@ class Day17(private val input: String) : Day() {
         // there's "only" 140x140 positions,
         // let's try djikstra's algorithm
 
+        return solution { crucible:Crucible -> crucible.possibleDirectionsToMovePart1()}
+    }
 
+
+    private fun solution (functionToGetDirections : (Crucible) -> Set<Pair<Direction, Int>>):Long{
         val board = Utils.Board.fromStringLines(input.lines()) { it.digitToInt() }
 
         // create a min heap map to store min positions
@@ -38,8 +42,7 @@ class Day17(private val input: String) : Day() {
             if (crucible.x == board.maxX && crucible.y == board.maxY) {
                 return crucible.heatLoss.toLong()
             }
-            // from here where can we move to?
-            val directions = crucible.possibleDirectionsToMovePart1()
+            val directions = functionToGetDirections(crucible)
             directions.forEach { (direction, steps) ->
                 val (dx, dy) = when (direction) {
                     Direction.NORTH -> Pair(0, -1)
@@ -59,68 +62,27 @@ class Day17(private val input: String) : Day() {
 
         return 0L
     }
-
     override fun part2(): Long {
-
-        val board = Utils.Board.fromStringLines(input.lines()) { it.digitToInt() }
-
-        // create a min heap map to store min positions
-        // we can use a priority queue for this
-
-        val queue = PriorityQueue<Crucible> { a, b -> a.heatLoss.compareTo(b.heatLoss) }
-        queue.add(Crucible(0, 0, 0, Direction.EAST, 0))
-
-        val statesSet = mutableSetOf<State>()
-
-        while (!queue.isEmpty()) {
-            val crucible = queue.poll()
-            if (crucible.x == board.maxX && crucible.y == board.maxY) {
-                return crucible.heatLoss.toLong()
-            }
-            // from here where can we move to?
-            val directions = crucible.possibleDirectionsToMovePart2()
-            directions.forEach { (direction, steps) ->
-                val (dx, dy) = when (direction) {
-                    Direction.NORTH -> Pair(0, -1)
-                    Direction.EAST -> Pair(1, 0)
-                    Direction.SOUTH -> Pair(0, 1)
-                    Direction.WEST -> Pair(-1, 0)
-                }
-                val nextPos = Pair(crucible.x + dx, crucible.y + dy)
-                val state = State(nextPos.first, nextPos.second, direction, steps)
-                if (board.inBounds(nextPos.first, nextPos.second) && !statesSet.contains(state)) {
-                    statesSet.add(state)
-                    val nextHeatLoss = crucible.heatLoss + board.board[nextPos.second][nextPos.first]
-                    queue.add(Crucible(nextPos.first, nextPos.second, nextHeatLoss, direction, steps))
-                }
-            }
-        }
-
-        return 0L
+        return solution { crucible:Crucible -> crucible.possibleDirectionsToMovePart2()}
     }
 
     data class State(val x: Int, val y: Int, val direction: Direction, val steps: Int)
     data class Crucible(val x: Int, val y: Int, val heatLoss: Int, val direction: Direction, val steps: Int) {
         fun possibleDirectionsToMovePart1(): Set<Pair<Direction, Int>> {
-            val directions = mutableSetOf<Pair<Direction, Int>>()
-
-            listOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST).filter { direction ->
+            return listOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST).filter { direction ->
                 direction != this.direction.oposite()
             }.filter { direction ->
                 // we can only move 3 steps in a row
                 if (this.steps == 3) direction != this.direction
                 else true
-            }.forEach { direction ->
-                if (direction == this.direction) directions.add(Pair(direction, this.steps + 1))
-                else directions.add(Pair(direction, 1))
-            }
-            return directions
+            }.map { direction ->
+                if (direction == this.direction) Pair(direction, this.steps + 1)
+                else Pair(direction, 1)
+            }.toSet()
         }
 
         fun possibleDirectionsToMovePart2(): Set<Pair<Direction, Int>> {
-            val directions = mutableSetOf<Pair<Direction, Int>>()
-
-            // special case for the first move, when we start i can only go east on this part but if steps is 0 we can go any direction
+            // special case for the first move, when we start I can only go east on this part but if steps is 0 we can go any direction
             if (this.steps == 0) return setOf(
                 Pair(Direction.NORTH, 1),
                 Pair(Direction.EAST, 1),
@@ -128,7 +90,7 @@ class Day17(private val input: String) : Day() {
                 Pair(Direction.WEST, 1)
             )
 
-            listOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST).filter { direction ->
+            return listOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST).filter { direction ->
                 direction != this.direction.oposite()
             }.filter { direction ->
                 // we can only turn if we have done 4 steps or more
@@ -138,11 +100,10 @@ class Day17(private val input: String) : Day() {
                 // it can move a max of 10 steps facing the same direction
                 if (this.steps == 10) direction != this.direction
                 else true
-            }.forEach { direction ->
-                if (direction == this.direction) directions.add(Pair(direction, this.steps + 1))
-                else directions.add(Pair(direction, 1))
-            }
-            return directions
+            }.map { direction ->
+                if (direction == this.direction) Pair(direction, this.steps + 1)
+                else Pair(direction, 1)
+            }.toSet()
         }
     }
 }
