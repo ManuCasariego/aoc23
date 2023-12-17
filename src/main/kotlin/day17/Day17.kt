@@ -16,8 +16,8 @@ class Day17(private val input: String) : Day() {
 
         // I would say to try BFS but if there's already a solution that can reach that position in less heat loss we
         // discard that path
-        // I don't think that would work since imagine we are at 10,10 and there's another way that reacheed 10,10
-        // but the right path is to keep goign left from there and the one that reached 10,10 can't since they already did 3 steps left
+        // I don't think that would work since imagine we are at 10,10 and there's another way that reached 10,10
+        // but the right path is to keep going left from there and the one that reached 10,10 can't since they already did 3 steps left
 
         // there's "only" 140x140 positions,
         // let's try djikstra's algorithm
@@ -26,7 +26,7 @@ class Day17(private val input: String) : Day() {
     }
 
 
-    private fun solution (functionToGetDirections : (Crucible) -> Set<Pair<Direction, Int>>):Long{
+    private fun solution (minimumStepsBeforeStop: Int = 0, functionToGetDirections : (Crucible) -> Set<Pair<Direction, Int>>):Long{
         val board = Utils.Board.fromStringLines(input.lines()) { it.digitToInt() }
 
         // create a min heap map to store min positions
@@ -40,7 +40,7 @@ class Day17(private val input: String) : Day() {
         while (!queue.isEmpty()) {
             val crucible = queue.poll()
             if (crucible.x == board.maxX && crucible.y == board.maxY) {
-                return crucible.heatLoss.toLong()
+                if (crucible.steps >= minimumStepsBeforeStop) return crucible.heatLoss.toLong()
             }
             val directions = functionToGetDirections(crucible)
             directions.forEach { (direction, steps) ->
@@ -63,7 +63,7 @@ class Day17(private val input: String) : Day() {
         return 0L
     }
     override fun part2(): Long {
-        return solution { crucible:Crucible -> crucible.possibleDirectionsToMovePart2()}
+        return solution(4) { crucible:Crucible -> crucible.possibleDirectionsToMovePart2()}
     }
 
     data class State(val x: Int, val y: Int, val direction: Direction, val steps: Int)

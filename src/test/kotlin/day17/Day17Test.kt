@@ -26,12 +26,14 @@ class Day17Test : DayTest() {
 
     @Test
     fun part1() {
-        solvePart1(day)
+        val part1 = solvePart1(day)
+        Assertions.assertEquals(668, part1)
     }
 
     @Test
     fun part2() {
-        solvePart2(day)
+        val part2 = solvePart2(day)
+        Assertions.assertEquals(788, part2)
     }
 
     @Test
@@ -51,6 +53,21 @@ class Day17Test : DayTest() {
 
         Assertions.assertTrue(possibleDirectionsToMove.size == 1)
         Assertions.assertTrue(possibleDirectionsToMove.contains(Pair(Day16.Direction.NORTH, 2)))
+    }
+
+    @Test
+    fun anotherExamplePart2() {
+        val anotherExampleDay = Day17(
+            """111111111111
+999999999991
+999999999991
+999999999991
+999999999991
+""".trimIndent()
+        )
+        val part2 = solvePart2(anotherExampleDay)
+        val expectedSolution = 71L
+        Assertions.assertEquals(expectedSolution, part2, "Part 2 with example input should equal $expectedSolution")
     }
 
 }
