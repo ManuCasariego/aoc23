@@ -18,12 +18,12 @@ object Utils {
     }
 
 
-    fun String.ints(): List<Int> {
-        return this.split(",").filter { it.isNotEmpty() }.map { it.toInt() }
+    fun String.ints(delimiter: String): List<Int> {
+        return this.split(delimiter).filter { it.isNotEmpty() }.map { it.toInt() }
     }
 
-    fun String.longs(): List<Long> {
-        return this.split(",").filter { it.isNotEmpty() }.map { it.toLong() }
+    fun String.longs(delimiter: String): List<Long> {
+        return this.split(delimiter).filter { it.isNotEmpty() }.map { it.toLong() }
     }
 
     class Board<T>(val board: List<List<T>>) {
