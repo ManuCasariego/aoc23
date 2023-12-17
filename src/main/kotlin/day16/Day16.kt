@@ -30,7 +30,7 @@ class Day16(private val input: String) : Day() {
     }
 
     private fun numberOfBeams(board: Board<Char>, startingLight: Pair<Pair<Int, Int>, Direction>): Int {
-        val intBoard = MutableList(input.lines().size) { MutableList(input.lines().first().length) { 0 } }
+        val intBoard = Array(board.board.size) { Array(board.board.first().size) { 0 } }
         val lightQueue = ArrayDeque<Pair<Pair<Int, Int>, Direction>>()
 
         intBoard[startingLight.first.second][startingLight.first.first] = 1
