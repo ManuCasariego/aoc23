@@ -68,7 +68,7 @@ class Day16(private val input: String) : Day() {
     enum class Direction {
         NORTH, EAST, SOUTH, WEST;
 
-        fun oposite(): Direction {
+        fun opposite(): Direction {
             return when (this) {
                 NORTH -> SOUTH
                 EAST -> WEST

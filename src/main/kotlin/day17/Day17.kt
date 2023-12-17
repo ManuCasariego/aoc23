@@ -70,7 +70,7 @@ class Day17(private val input: String) : Day() {
     data class Crucible(val x: Int, val y: Int, val heatLoss: Int, val direction: Direction, val steps: Int) {
         fun possibleDirectionsToMovePart1(): Set<Pair<Direction, Int>> {
             return listOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST).filter { direction ->
-                direction != this.direction.oposite()
+                direction != this.direction.opposite()
             }.filter { direction ->
                 // we can only move 3 steps in a row
                 if (this.steps == 3) direction != this.direction
@@ -91,7 +91,7 @@ class Day17(private val input: String) : Day() {
             )
 
             return listOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST).filter { direction ->
-                direction != this.direction.oposite()
+                direction != this.direction.opposite()
             }.filter { direction ->
                 // we can only turn if we have done 4 steps or more
                 if (this.steps < 4) direction == this.direction
