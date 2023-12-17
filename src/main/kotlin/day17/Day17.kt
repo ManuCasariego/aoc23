@@ -1,7 +1,7 @@
 package day17
 
 import Day
-import day16.Day16.*
+import Utils.Direction
 import java.util.*
 
 
@@ -28,7 +28,7 @@ class Day17(private val input: String) : Day() {
 
     private fun solution(
         maxStepsSameDirection: Int,
-        turningRestriction: Int = 0
+        turningRestriction: Int = 0,
     ): Long {
         val board = Utils.Board.fromStringLines(input.lines()) { it.digitToInt() }
 
@@ -42,9 +42,9 @@ class Day17(private val input: String) : Day() {
 
         while (!queue.isEmpty()) {
             val crucible = queue.poll()
-            if (crucible.x == board.maxX && crucible.y == board.maxY) {
-                // turning restriction and max steps same direction restriction is the same
-                if (crucible.steps >= turningRestriction) return crucible.heatLoss.toLong()
+            if (crucible.x == board.maxX && crucible.y == board.maxY && crucible.steps >= turningRestriction) {
+                // turning restriction and max steps same direction restriction are the same
+                return crucible.heatLoss.toLong()
             }
             val directions = crucible.possibleDirectionsToMove(turningRestriction, maxStepsSameDirection)
             directions.forEach { (direction, steps) ->
@@ -63,7 +63,6 @@ class Day17(private val input: String) : Day() {
                 }
             }
         }
-
         return 0L
     }
 
@@ -75,9 +74,10 @@ class Day17(private val input: String) : Day() {
     data class Crucible(val x: Int, val y: Int, val heatLoss: Int, val direction: Direction, val steps: Int) {
         fun possibleDirectionsToMove(
             turningRestriction: Int = 0,
-            maxStepsSameDirection: Int
+            maxStepsSameDirection: Int,
         ): Set<Pair<Direction, Int>> {
-            // special case for the first move, when we start I can only go east on this part but if steps is 0 we can go any direction
+            // special case for very first move, if steps is 0 it can turn wherever it wants (NORTH and WEST should hit the wall)
+            // but I'm making this function general
             if (this.steps == 0) return setOf(
                 Pair(Direction.NORTH, 1),
                 Pair(Direction.EAST, 1),

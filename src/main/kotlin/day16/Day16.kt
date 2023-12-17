@@ -2,6 +2,7 @@ package day16
 
 import Day
 import Utils.Board
+import Utils.Direction
 
 class Day16(private val input: String) : Day() {
     override fun part1(): Long {
@@ -64,20 +65,6 @@ class Day16(private val input: String) : Day() {
         } while (lightQueue.isNotEmpty())
         return intBoard.flatten().sumOf { it }
     }
-
-    enum class Direction {
-        NORTH, EAST, SOUTH, WEST;
-
-        fun opposite(): Direction {
-            return when (this) {
-                NORTH -> SOUTH
-                EAST -> WEST
-                SOUTH -> NORTH
-                WEST -> EAST
-            }
-        }
-    }
-
 
     private fun getNextDirs(board: Board<Char>, light: Pair<Pair<Int, Int>, Direction>): List<Direction> {
         return when (board.board[light.first.second][light.first.first]) {

@@ -35,7 +35,7 @@ object Utils {
         val minY: Int get() = 0
         val maxY: Int get() = board.size - 1
         fun inBounds(x: Int, y: Int): Boolean {
-            return x in minX..maxX && y in minY..maxY
+            return y in board.indices && x in board[y].indices
         }
 
         companion object {
@@ -66,5 +66,33 @@ object Utils {
             this.map { line -> line[index] }.joinToString("")
         }
     }
+
+    enum class Direction {
+        NORTH, EAST, SOUTH, WEST;
+
+        fun opposite(): Direction {
+            return when (this) {
+                NORTH -> SOUTH
+                EAST -> WEST
+                SOUTH -> NORTH
+                WEST -> EAST
+            }
+        }
+
+        fun left(): Direction {
+            return when (this) {
+                NORTH -> WEST
+                EAST -> NORTH
+                SOUTH -> EAST
+                WEST -> SOUTH
+            }
+        }
+
+        fun right(): Direction {
+            // it looks funny
+            return left().opposite()
+        }
+    }
+
 
 }
