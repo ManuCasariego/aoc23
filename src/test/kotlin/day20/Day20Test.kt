@@ -23,10 +23,6 @@ class Day20Test : DayTest() {
 
     @Test
     fun part2() {
-        solvePart2(day)
         Assertions.assertEquals(207787533680413, solvePart2(day))
-
     }
-
-
 }

@@ -152,8 +152,6 @@ class Day20(private val input: String) : Day() {
         var i = 0L
 
         // in my case, for the rx piece to receive a low pulse we need 4 high pulses from dl, vd, bh and ns
-        // TODO : Make it generic, not only for my input
-        // there should be only one
         val pieceThatPointsToRx = piecesMap.values.filter { it.output.contains("rx") }
         if (pieceThatPointsToRx.size != 1) throw Exception("There should be only one piece that points to rx")
 
