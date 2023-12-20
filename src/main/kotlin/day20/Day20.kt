@@ -71,51 +71,13 @@ class Day20(private val input: String) : Day() {
 
         while (queue.isNotEmpty()) {
             val order = queue.removeFirst()
+            // part 1 specific
             if (order.signal == Signal.LOW) signalsCount.low++
             else if (order.signal == Signal.HIGH) signalsCount.high++
 
             val piece = piecesMap[order.to]!!
-            if (piece.type == PieceType.OUTPUT) {
-                // do nothing
-            } else if (piece.type == PieceType.BROADCASTER) {
-                // broadcast the signal to every one
-                piece.output.forEach { outputPiece ->
-                    queue.add(Order(from = piece.name, to = outputPiece, signal = order.signal))
-                }
-            } else if (piece.type == PieceType.FLIPFLOP) {
-                if (order.signal == Signal.HIGH) {
-                    // nothing happens
-                } else {
-                    if (piece.on!!) {
-                        piece.output.forEach { outputPiece ->
-                            queue.add(Order(from = piece.name, to = outputPiece, signal = Signal.LOW))
-                        }
-                    } else {
-                        piece.output.forEach { outputPiece ->
-                            queue.add(Order(from = piece.name, to = outputPiece, signal = Signal.HIGH))
-                        }
-                    }
-                    piece.on = !piece.on!!
-                }
-            } else if (piece.type == PieceType.INVERTER) {
-                // Conjunction modules (prefix &) remember the type of the most recent pulse received from each of their
-                // connected input modules; they initially default to remembering a low pulse for each input. When a
-                // pulse is received, the conjunction module first updates its memory for that input. Then, if it
-                // remembers high pulses for all inputs, it sends a low pulse; otherwise, it sends a high pulse.
 
-                piece.signalsMap!![order.from] = order.signal
-                if (piece.signalsMap.values.any { it == Signal.LOW }) {
-                    // high pulse
-                    piece.output.forEach { outputPiece ->
-                        queue.add(Order(from = piece.name, to = outputPiece, signal = Signal.HIGH))
-                    }
-                } else {
-                    // low pulse
-                    piece.output.forEach { outputPiece ->
-                        queue.add(Order(from = piece.name, to = outputPiece, signal = Signal.LOW))
-                    }
-                }
-            }
+            queue.addAll(piece.executeOrder(order))
         }
     }
 
@@ -129,29 +91,43 @@ class Day20(private val input: String) : Day() {
         var on: Boolean? = null,
         val signalsMap: MutableMap<String, Signal>? = null,
         val type: PieceType,
-    )
+    ) {
+        fun executeOrder(order: Order): Collection<Order> {
 
-    enum class Signal {
-        HIGH, LOW;
+            if (this.type == PieceType.OUTPUT) {
+                // do nothing
+            } else if (this.type == PieceType.BROADCASTER) {
+                // broadcast the signal to every one
+                return buildQueue(signal = order.signal, this)
+            } else if (this.type == PieceType.FLIPFLOP && order.signal != Signal.HIGH) {
+                this.on = !this.on!!
+                return buildQueue(signal = if (this.on!!) Signal.HIGH else Signal.LOW, this)
+            } else if (this.type == PieceType.INVERTER) {
+                this.signalsMap!![order.from] = order.signal
+                return buildQueue(
+                    signal = if (this.signalsMap.values.any { it == Signal.LOW }) Signal.HIGH else Signal.LOW,
+                    this
+                )
+            }
+            return emptyList()
+        }
 
-        fun reverse(): Signal {
-            return if (this == HIGH) LOW
-            else HIGH
+        private fun buildQueue(signal: Signal, piece: Piece): Collection<Order> {
+            return piece.output.map { outputPiece ->
+                Order(from = piece.name, to = outputPiece, signal = signal)
+            }
         }
     }
+
+    enum class Signal { HIGH, LOW }
 
     enum class PieceType { FLIPFLOP, INVERTER, BROADCASTER, OUTPUT }
 
     override fun part2(): Long {
         val piecesMap = buildPiecesMap(input)
 
-        // I need a queue to append orders
         val queue = mutableListOf<Order>()
-        // first is low and second is high
-        val signalsCount = SignalCount(0L, 0L)
-        var i = 0L
 
-        // in my case, for the rx piece to receive a low pulse we need 4 high pulses from dl, vd, bh and ns
         val pieceThatPointsToRx = piecesMap.values.filter { it.output.contains("rx") }
         if (pieceThatPointsToRx.size != 1) throw Exception("There should be only one piece that points to rx")
 
@@ -160,15 +136,14 @@ class Day20(private val input: String) : Day() {
                 .associate { it.name to -1L }.toMutableMap()
 
 
+        var buttonsPressed = 0L
         while (true) {
-            i++
+            buttonsPressed++
             // push the button
             queue.add(Order(from = "button", to = "broadcaster", signal = Signal.LOW))
 
             while (queue.isNotEmpty()) {
                 val order = queue.removeFirst()
-                if (order.signal == Signal.LOW) signalsCount.low++
-                else if (order.signal == Signal.HIGH) signalsCount.high++
 
                 val piece = piecesMap[order.to]!!
 
@@ -182,50 +157,10 @@ class Day20(private val input: String) : Day() {
                     order.signal == Signal.HIGH &&
                     order.to == pieceThatPointsToRx.first().name
                 ) {
-                    piecesThatShouldEmmitHighPulse[order.from] = i
+                    piecesThatShouldEmmitHighPulse[order.from] = buttonsPressed
                 }
 
-                if (piece.type == PieceType.OUTPUT) {
-                    // do nothing
-                } else if (piece.type == PieceType.BROADCASTER) {
-                    // broadcast the signal to every one
-                    piece.output.forEach { outputPiece ->
-                        queue.add(Order(from = piece.name, to = outputPiece, signal = order.signal))
-                    }
-                } else if (piece.type == PieceType.FLIPFLOP) {
-                    if (order.signal == Signal.HIGH) {
-                        // nothing happens
-                    } else {
-                        if (piece.on!!) {
-                            piece.output.forEach { outputPiece ->
-                                queue.add(Order(from = piece.name, to = outputPiece, signal = Signal.LOW))
-                            }
-                        } else {
-                            piece.output.forEach { outputPiece ->
-                                queue.add(Order(from = piece.name, to = outputPiece, signal = Signal.HIGH))
-                            }
-                        }
-                        piece.on = !piece.on!!
-                    }
-                } else if (piece.type == PieceType.INVERTER) {
-                    // Conjunction modules (prefix &) remember the type of the most recent pulse received from each of their
-                    // connected input modules; they initially default to remembering a low pulse for each input. When a
-                    // pulse is received, the conjunction module first updates its memory for that input. Then, if it
-                    // remembers high pulses for all inputs, it sends a low pulse; otherwise, it sends a high pulse.
-
-                    piece.signalsMap!![order.from] = order.signal
-                    if (piece.signalsMap.values.any { it == Signal.LOW }) {
-                        // high pulse
-                        piece.output.forEach { outputPiece ->
-                            queue.add(Order(from = piece.name, to = outputPiece, signal = Signal.HIGH))
-                        }
-                    } else {
-                        // all the signals are high then we send a low pulse
-                        piece.output.forEach { outputPiece ->
-                            queue.add(Order(from = piece.name, to = outputPiece, signal = Signal.LOW))
-                        }
-                    }
-                }
+                queue.addAll(piece.executeOrder(order))
             }
         }
     }
