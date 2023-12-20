@@ -16,8 +16,6 @@ class Day20(private val input: String) : Day() {
                 val output = line.substringAfter("->").trim().split(",").map { it.trim() }
                 name to Piece(name, output, on = null, signalsMap = mutableMapOf(), type = PieceType.INVERTER)
             } else {
-                // this should be only for broadcaster, but it's not
-                val name = id.trim()
                 val output = line.substringAfter("->").trim().split(",").map { it.trim() }
                 "broadcaster" to Piece(
                     "broadcaster",
