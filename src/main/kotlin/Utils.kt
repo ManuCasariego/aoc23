@@ -27,15 +27,18 @@ object Utils {
     }
 
     class Board<T>(val board: List<List<T>>) {
-        val rows: List<List<T>> get() = board
-        val columns: List<List<T>> get() = board[0].indices.map { col -> board.map { row -> row[col] } }
+        val rows: List<List<T>> = board
+        val columns: List<List<T>> = if (board.isNotEmpty()) board[0].indices.map { col -> board.map { row -> row[col] } } else emptyList()
 
-        val minX: Int get() = 0
-        val maxX: Int get() = if (board.isNotEmpty()) board[0].size - 1 else 0
-        val minY: Int get() = 0
-        val maxY: Int get() = board.size - 1
+        val minX: Int = 0
+        val maxX: Int = if (board.isNotEmpty()) board[0].size - 1 else 0
+        val minY: Int = 0
+        val maxY: Int = board.size - 1
+        val height: Int = board.size
+        val width: Int = if (board.isNotEmpty()) board[0].size else 0
+
         fun inBounds(x: Int, y: Int): Boolean {
-            return y in board.indices && x in board[y].indices
+            return y in 0 until height && x in 0 until width
         }
 
         companion object {
