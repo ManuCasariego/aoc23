@@ -1,47 +1,47 @@
 package day21
 
 import Day
+import Utils.Board
 import Utils.Direction
+import Utils.Point2D
+import kotlin.math.max
 
 class Day21(private val input: String) : Day() {
     override fun part1(): Long {
         //He gives you an up-to-date map (your puzzle input) of his starting position (S), garden plots (.), and rocks (#). For example:
         //he'd like to know which garden plots he can reach with exactly his remaining 64 steps.
-        val board = Utils.Board.fromStringLines(input.lines())
+        val board = Board.fromStringLines(input.lines())
 
         // the starting position is the S in the board
-        val sy = board.rows.indexOfFirst { it.contains('S') }
-        val sx = board.rows[sy].indexOf('S')
-        val sPosition = Pair(sx, sy)
-        return bfs(sPosition, 64, board).toLong()
+        return bfs(board.getPosition('S'), 64, board).toLong()
     }
 
     override fun part2(): Long {
-        val board = Utils.Board.fromStringLines(input.lines())
+        val board = Board.fromStringLines(input.lines())
 
         // corners, n of each
-        val corner1 = bfs(Pair(0, 0), 64, board)
-        val corner2 = bfs(Pair(130, 130), 64, board)
-        val corner3 = bfs(Pair(0, 130), 64, board)
-        val corner4 = bfs(Pair(130, 0), 64, board)
+        val corner1 = bfs(Point2D(0, 0), 64, board)
+        val corner2 = bfs(Point2D(130, 130), 64, board)
+        val corner3 = bfs(Point2D(0, 130), 64, board)
+        val corner4 = bfs(Point2D(130, 0), 64, board)
         val cornerSum = corner1 + corner2 + corner3 + corner4
 
         // weird halves, 1 of each
-        val half1 = bfs(Pair(0, 65), 130, board)
-        val half2 = bfs(Pair(130, 65), 130, board)
-        val half3 = bfs(Pair(65, 0), 130, board)
-        val half4 = bfs(Pair(65, 130), 130, board)
+        val half1 = bfs(Point2D(0, 65), 130, board)
+        val half2 = bfs(Point2D(130, 65), 130, board)
+        val half3 = bfs(Point2D(65, 0), 130, board)
+        val half4 = bfs(Point2D(65, 130), 130, board)
         val halfSum = half1 + half2 + half3 + half4
 
         // another set of weird halves, n-1 of each
-        val weirdHalf1 = bfs(Pair(0, 0), 195, board)
-        val weirdHalf2 = bfs(Pair(130, 130), 195, board)
-        val weirdHalf3 = bfs(Pair(0, 130), 195, board)
-        val weirdHalf4 = bfs(Pair(130, 0), 195, board)
+        val weirdHalf1 = bfs(Point2D(0, 0), 195, board)
+        val weirdHalf2 = bfs(Point2D(130, 130), 195, board)
+        val weirdHalf3 = bfs(Point2D(0, 130), 195, board)
+        val weirdHalf4 = bfs(Point2D(130, 0), 195, board)
         val weirdHalfSum = weirdHalf1 + weirdHalf2 + weirdHalf3 + weirdHalf4
 
-        val evenBoardPositions = bfs(Pair(0, 0), 260, board) // 7262
-        val oddBoardPositions = bfs(Pair(0, 0), 259, board) // 7255
+        val evenBoardPositions = bfs(Point2D(0, 0), 260, board) // 7262
+        val oddBoardPositions = bfs(Point2D(0, 0), 259, board) // 7255
 
         val steps = 26_501_365L
         val n = steps / board.width // 202_300
@@ -60,58 +60,48 @@ class Day21(private val input: String) : Day() {
 
 
     // returns the number of steps you need to cover the full board
-    private fun bfs(sPosition: Pair<Int, Int>, board: Utils.Board<Char>): Int {
-        val visited = mutableMapOf<Pair<Int, Int>, Int>()
-        val positionsQueue2 = mutableListOf(sPosition)
-        visited[sPosition] = 0
-        while (positionsQueue2.isNotEmpty()) {
-            val position = positionsQueue2.removeAt(0)
-            listOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST).map { direction ->
-                when (direction) {
-                    Direction.NORTH -> Pair(position.first, position.second - 1)
-                    Direction.EAST -> Pair(position.first + 1, position.second)
-                    Direction.SOUTH -> Pair(position.first, position.second + 1)
-                    Direction.WEST -> Pair(position.first - 1, position.second)
-                }
+    private fun bfs(s: Point2D, board: Board<Char>): Int {
+        val visited = mutableSetOf<Point2D>()
+        val queue = mutableListOf(Pair(s, 0))
+        var maxDistance = 0
+        while (queue.isNotEmpty()) {
+            val (position, distance) = queue.removeAt(0)
+            maxDistance = max(distance, maxDistance)
+            if (visited.contains(position)) continue
+            visited.add(position)
 
-            }.filterNot { visited.contains(it) }.filter { board.inBounds(it.first, it.second) }
-                .filter { board.board[it.second][it.first] != '#' }.forEach { pair ->
-                    positionsQueue2.add(pair)
-                    visited[pair] = visited[position]!! + 1
+            listOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST).map { direction ->
+                position.move(direction)
+            }.filter { board.inBounds(it) && board.get(it) != '#' }
+                .forEach {
+                    queue.add(Pair(it, distance + 1))
                 }
         }
-        return visited.values.max()
+        return maxDistance
     }
 
 
     // returns the number of positions you can reach in steps steps
-    private fun bfs(sPosition: Pair<Int, Int>, steps: Int, board: Utils.Board<Char>): Int {
+    private fun bfs(s: Point2D, steps: Int, board: Board<Char>): Int {
 
-        val positionsQueue = mutableSetOf<Pair<Int, Int>>()
-        positionsQueue.add(sPosition)
-        val sizes = mutableListOf<Long>()
-        (1..steps).forEach { _ ->
-            sizes.add(positionsQueue.size.toLong())
-            val newPositionsQueue = mutableSetOf<Pair<Int, Int>>()
+        val queue = mutableListOf<Pair<Point2D, Int>>()
+        val visited = mutableSetOf<Point2D>()
+        val solution = mutableSetOf<Point2D>()
+        queue.add(Pair(s, 0))
 
-            positionsQueue.forEach { position ->
-                listOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST).map { direction ->
-                    when (direction) {
-                        Direction.NORTH -> Pair(position.first, position.second - 1)
-                        Direction.EAST -> Pair(position.first + 1, position.second)
-                        Direction.SOUTH -> Pair(position.first, position.second + 1)
-                        Direction.WEST -> Pair(position.first - 1, position.second)
-                    }
-
-                }.filter { board.inBounds(it.first, it.second) && board.board[it.second][it.first] != '#' }
-                    .forEach {
-                        newPositionsQueue.add(it)
-                    }
+        while (queue.isNotEmpty()) {
+            val (position, distance) = queue.removeFirst()
+            if (distance > steps) break
+            if (visited.contains(position)) continue
+            visited.add(position)
+            if (distance % 2 == steps % 2) {
+                solution.add(position)
             }
-            positionsQueue.clear()
-            positionsQueue.addAll(newPositionsQueue)
+            listOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST).map { direction ->
+                position.move(direction)
+            }.filter { board.inBounds(it) && board.get(it) != '#' }
+                .forEach { queue.add(Pair(it, distance + 1)) }
         }
-        return positionsQueue.size
-
+        return solution.size
     }
 }

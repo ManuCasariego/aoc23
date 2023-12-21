@@ -40,8 +40,26 @@ object Utils {
         val height: Int = board.size
         val width: Int = if (board.isNotEmpty()) board[0].size else 0
 
+        fun get(x: Int, y: Int): T {
+            return board[y][x]
+        }
+
+        fun get(point2D: Point2D): T {
+            return get(point2D.x.toInt(), point2D.y.toInt())
+        }
+
         fun inBounds(x: Int, y: Int): Boolean {
             return y in 0 until height && x in 0 until width
+        }
+
+        fun inBounds(point2D: Point2D): Boolean {
+            return inBounds(point2D.x.toInt(), point2D.y.toInt())
+        }
+
+        fun getPosition(t: T): Point2D {
+            val y = rows.indexOfFirst { it.contains(t) }
+            val x = rows[y].indexOf(t)
+            return Point2D(x, y)
         }
 
         companion object {
@@ -125,13 +143,15 @@ object Utils {
     }
 
     data class Point2D(val x: Long, val y: Long) {
+        // create a constructor that takes two ints
+        constructor(x: Int, y: Int) : this(x.toLong(), y.toLong())
         fun manhattanDistance(other: Point2D): Long {
             return abs(this.x - other.x) + abs(this.y - other.y)
         }
 
         // note that NORTH removes from y and SOUTH adds to y
-        fun move(direction: Direction, n: Int = 1): Point2D{
-            return when (direction){
+        fun move(direction: Direction, n: Int = 1): Point2D {
+            return when (direction) {
                 Direction.NORTH -> Point2D(x, y - n)
                 Direction.EAST -> Point2D(x + n, y)
                 Direction.SOUTH -> Point2D(x, y + n)
