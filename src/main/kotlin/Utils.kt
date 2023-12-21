@@ -1,3 +1,5 @@
+import kotlin.math.abs
+
 object Utils {
     fun List<String>.splitByEmpty(): List<List<String>> {
         val groups = mutableListOf<List<String>>()
@@ -28,7 +30,8 @@ object Utils {
 
     class Board<T>(val board: List<List<T>>) {
         val rows: List<List<T>> = board
-        val columns: List<List<T>> = if (board.isNotEmpty()) board[0].indices.map { col -> board.map { row -> row[col] } } else emptyList()
+        val columns: List<List<T>> =
+            if (board.isNotEmpty()) board[0].indices.map { col -> board.map { row -> row[col] } } else emptyList()
 
         val minX: Int = 0
         val maxX: Int = if (board.isNotEmpty()) board[0].size - 1 else 0
@@ -121,5 +124,20 @@ object Utils {
         }
     }
 
+    data class Point2D(val x: Long, val y: Long) {
+        fun manhattanDistance(other: Point2D): Long {
+            return abs(this.x - other.x) + abs(this.y - other.y)
+        }
+
+        // note that NORTH removes from y and SOUTH adds to y
+        fun move(direction: Direction, n: Int = 1): Point2D{
+            return when (direction){
+                Direction.NORTH -> Point2D(x, y - n)
+                Direction.EAST -> Point2D(x + n, y)
+                Direction.SOUTH -> Point2D(x, y + n)
+                Direction.WEST -> Point2D(x - n, y)
+            }
+        }
+    }
 
 }
