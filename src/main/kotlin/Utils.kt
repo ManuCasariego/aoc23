@@ -1,4 +1,6 @@
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 object Utils {
     fun List<String>.splitByEmpty(): List<List<String>> {
@@ -157,6 +159,45 @@ object Utils {
                 Direction.SOUTH -> Point2D(x, y + n)
                 Direction.WEST -> Point2D(x - n, y)
             }
+        }
+    }
+
+    data class Point3D(val x: Long, val y: Long, val z: Long) {
+        fun manhattanDistance(other: Point3D): Long {
+            return abs(this.x - other.x) + abs(this.y - other.y) + abs(this.z - other.z)
+        }
+
+        fun getListFromOneToAnother(other: Point3D): List<Point3D>{
+            val middlePoints = mutableListOf<Point3D>()
+            // they should be the same on two dimensions
+            if (this.x == other.x && this.y == other.y) {
+                val minZ = min(this.z, other.z)
+                val maxZ = max(this.z, other.z)
+                for (z in minZ..maxZ){
+                    middlePoints.add(Point3D(x, y, z))
+                }
+            } else if (this.x == other.x && this.z == other.z){
+                val minY = min(this.y, other.y)
+                val maxY = max(this.y, other.y)
+                val minZ = min(this.z, other.z)
+                val maxZ = max(this.z, other.z)
+                for (y in minY..maxY){
+                    for (z in minZ..maxZ){
+                        middlePoints.add(Point3D(x, y, z))
+                    }
+                }
+            } else if (this.y == other.y && this.z == other.z){
+                val minX = min(this.x, other.x)
+                val maxX = max(this.x, other.x)
+                val minZ = min(this.z, other.z)
+                val maxZ = max(this.z, other.z)
+                for (x in minX..maxX){
+                    for (z in minZ..maxZ){
+                        middlePoints.add(Point3D(x, y, z))
+                    }
+                }
+            }
+            return middlePoints
         }
     }
 
