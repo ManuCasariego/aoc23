@@ -5,14 +5,14 @@ import Utils.Point3D
 import kotlin.math.min
 
 class Day22(private val input: String) : Day() {
+    private val bricks = buildBricks(input)
+    private val fallenBricks = makeBricksFall(bricks, speedyExit = false).first
+
     override fun part1(): Long {
-        val bricks = buildBricks(input)
-        val fallenBricks = makeBricksFall(bricks)
         return fallenBricks.count { fallenBrick ->
-            // we need to check if we remove fallen brick, will any other brick fall?
-            val remainingBricks = fallenBricks.filter { it != fallenBrick }
-            val makeThemFallAgain = makeBricksFall(remainingBricks)
-            makeThemFallAgain.containsAll(remainingBricks) && remainingBricks.containsAll(makeThemFallAgain)
+            val remainingBricks = fallenBricks.toMutableSet()
+            remainingBricks.remove(fallenBrick)
+            makeBricksFall(remainingBricks, speedyExit = true).second == 0L
         }.toLong()
     }
 
@@ -25,56 +25,58 @@ class Day22(private val input: String) : Day() {
         }
     }
 
-    private fun makeBricksFall(bricks: List<Brick>): List<Brick> {
-        val fallenBricks = mutableListOf<Brick>()
+    private fun makeBricksFall(bricks: Collection<Brick>, speedyExit: Boolean): Pair<Set<Brick>, Long> {
+        val fallenBricks = mutableSetOf<Brick>()
+        var numberOfMovedBricks = 0L
         bricks.sortedBy { min(it.start.z, it.end.z) }.forEach { brick ->
             var fallingBrick = brick
-            var brickPlaced = false
-            // let's move if down as much as possible
-            while (fallingBrick.start.z > 1L && fallingBrick.end.z > 1L) {
-                val tryBrick = Brick(
-                    fallingBrick.index,
-                    Point3D(fallingBrick.start.x, fallingBrick.start.y, fallingBrick.start.z - 1),
-                    Point3D(fallingBrick.end.x, fallingBrick.end.y, fallingBrick.end.z - 1)
-                )
+            while (min(fallingBrick.start.z, fallingBrick.end.z) > 1L) {
+                // we move it down until it hits something
+                val tryBrick = fallingBrick.moveDown()
                 if (fallenBricks.any { it.intersects(tryBrick) }) {
-                    // it clashes, thereforw we need to add current falling brick to fallen bricks
-                    fallenBricks.add(fallingBrick)
-                    brickPlaced = true
-                    // we can't move down anymore
                     break
                 } else {
-                    // we can move down
+                    if (speedyExit) return setOf<Brick>() to 1L
                     fallingBrick = tryBrick
                 }
             }
-            if (!brickPlaced) {
-                // we can place it at the bottom
-                fallenBricks.add(fallingBrick)
-            }
+            if (fallingBrick != brick) numberOfMovedBricks++
+            fallenBricks.add(fallingBrick)
         }
-        // move them to free fall
-        return fallenBricks
+        return fallenBricks to numberOfMovedBricks
     }
 
     data class Brick(val index: Int, val start: Point3D, val end: Point3D) {
         fun intersects(other: Brick): Boolean {
-            val thisMiddlePoints = this.start.getListFromOneToAnother(this.end)
-            val otherMiddlePoints = other.start.getListFromOneToAnother(other.end)
-            return thisMiddlePoints.any { otherMiddlePoints.contains(it) }
+            // putting the z the first one as it's the most likely to be different, moving the check here goes from
+            // 14s to 6s
+            if (!doesItIntersect(this.start.z, this.end.z, other.start.z, other.end.z)) return false
+            if (!doesItIntersect(this.start.x, this.end.x, other.start.x, other.end.x)) return false
+            if (!doesItIntersect(this.start.y, this.end.y, other.start.y, other.end.y)) return false
+            return true
+        }
+
+        private fun doesItIntersect(aStart: Long, aEnd: Long, bStart: Long, bEnd: Long): Boolean {
+            val (minA, maxA) = if (min(aStart, aEnd) == aStart) aStart to aEnd else aEnd to aStart
+            val (minB, maxB) = if (min(bStart, bEnd) == bStart) bStart to bEnd else bEnd to bStart
+            return !(minA > maxB || maxA < minB)
+        }
+
+        fun moveDown(): Brick {
+            return Brick(
+                this.index,
+                Point3D(this.start.x, this.start.y, this.start.z - 1),
+                Point3D(this.end.x, this.end.y, this.end.z - 1)
+            )
         }
     }
 
     override fun part2(): Long {
-        val bricks = buildBricks(input)
-
-        val fallenBricks = makeBricksFall(bricks)
         val solution = fallenBricks.map { fallenBrick ->
-            val remainingBricks = fallenBricks.filter { it != fallenBrick }
-            val makeThemFallAgain = makeBricksFall(remainingBricks)
-            remainingBricks.count { !makeThemFallAgain.contains(it) }.toLong()
+            val remainingBricks = fallenBricks.toMutableSet()
+            remainingBricks.remove(fallenBrick)
+            makeBricksFall(remainingBricks, speedyExit = false).second
         }
         return solution.sum()
     }
-
 }
